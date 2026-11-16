@@ -146,6 +146,9 @@ class ZapPassiveAdapter:
         return parsed.scheme.lower(), parsed.hostname.lower().rstrip("."), port
 
     def run(self, context: ScanContext) -> ScanResult:
+        from cybersec.cgroup_containment import production_mode, ContainmentBlocked
+        if production_mode():
+            raise ContainmentBlocked('Remote ZAP daemon cancellation cannot be OS-confined here; production disabled')
         from cybersec.process_supervision import ScanCancelled
         abort = context.options.get("cancel_event")
         def check_abort():
@@ -263,6 +266,16 @@ class NucleiAdapter:
         return parsed.scheme.lower(), parsed.hostname.lower().rstrip("."), port
 
     def run(self, context: ScanContext) -> ScanResult:
+        from cybersec.cgroup_containment import production_mode, CgroupV2Executor, ContainmentBlocked
+        if production_mode():
+            from cybersec.lab_authorization import require_host_signed_lab_ticket
+            # A direct synchronous library call has no durable claimed-attempt
+            # fencing; it is forbidden in production, even with a valid target.
+            if not (context.options.get('worker_id') and type(context.options.get('attempt')) is int
+                    and context.options.get('cancel_event') is not None):
+                raise ContainmentBlocked('Legacy direct Nuclei production invocation forbidden')
+            require_host_signed_lab_ticket(job_id=context.job_id,
+                    attempt=context.options['attempt'],tool='nuclei',target_url=context.target_url)
         if not self.executable:
             raise RuntimeError("Nuclei executable not found. Install Nuclei or set CYBERSEC_NUCLEI_PATH.")
         target = context.target_url
@@ -278,9 +291,14 @@ class NucleiAdapter:
             # Worker-owned processes must use the supervised POSIX process group.
             # Keep the public, direct adapter API for compatibility with Stage 4.
             if "cancel_event" in context.options:
-                from cybersec.process_supervision import run_supervised
-                completed = run_supervised(command, timeout=self.timeout,
-                                           cancel_event=context.options["cancel_event"])
+                if production_mode():
+                    from cybersec.cgroup_containment import _CGROUP_ROOT, _own_cgroup
+                    completed = CgroupV2Executor(_CGROUP_ROOT/_own_cgroup().lstrip('/')).run(
+                        command, timeout=self.timeout, cancel_event=context.options['cancel_event'])
+                else:
+                    from cybersec.process_supervision import run_supervised
+                    completed = run_supervised(command, timeout=self.timeout,
+                                               cancel_event=context.options["cancel_event"])
                 if completed.stdout_truncated or completed.stderr_truncated:
                     raise RuntimeError("Nuclei output exceeded bounded retention; result incomplete")
             else:
@@ -374,6 +392,9 @@ class SqlmapConfirmationAdapter:
         self.timeout = timeout
 
     def run(self, context: ScanContext) -> ScanResult:
+        from cybersec.cgroup_containment import production_mode, ContainmentBlocked
+        if production_mode():
+            raise ContainmentBlocked('Sqlmap production execution not admitted by Stage 62')
         from urllib.parse import parse_qs
         import re
 

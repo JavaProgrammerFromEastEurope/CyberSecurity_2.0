@@ -29,7 +29,7 @@ def _repository() -> Repository:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="cybersec",
-        description="Authorized security assessment orchestrator — Stage 61 scanner process supervision.",
+        description="Authorized security assessment orchestrator — Stage 62 OS-enforced containment candidate and safe lab admission.",
     )
     sub = parser.add_subparsers(dest="command", required=True)
 

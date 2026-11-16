@@ -1,3 +1,14 @@
+# Stage 62 — 2.42.0 (OS-Enforced Containment Candidate)
+
+- Added fail-closed cgroup v2 execution gate and blocked trampoline, exact PID
+  starttime / cgroup checks, kernel cgroup.kill cleanup and population checks.
+- Added independent Ed25519 signed per-attempt loopback lab tickets;
+  production Nuclei refuses unsigned direct invocation.
+- Blocked production ZAP remote-daemon and SQLmap execution paths.
+- Added read-only host audit, proposed systemd unit and security contracts.
+- No full OS-enforced legacy confinement, production admission or live network
+  scan is claimed. All prior versions, schemas, evidence and API remain.
+
 ## 2.41.0 — Stage 61: Local Scanner Process Supervision
 - Supervised Nuclei worker subprocesses with bounded output/deadline, POSIX process-group SIGTERM/SIGKILL escalation, no shell, and no implicit retries.
 - Scan worker observes cancel, revoked/expired lease, and stop_event during execution; CLI handles SIGTERM/SIGINT.

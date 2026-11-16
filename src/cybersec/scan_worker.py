@@ -95,6 +95,15 @@ def run_scan_worker(repository: Repository, *, worker_id: str, lease_seconds: in
         raise ValueError("idle_seconds must be between 0.1 and 60.")
     if max_jobs < 0:
         raise ValueError("max_jobs cannot be negative.")
+    from cybersec.cgroup_containment import production_mode, ContainmentBlocked
+    if production_mode():
+        # Stage 62 implements an executable candidate but does not have an
+        # independently attested production permit authority. Consequently
+        # even a host with all observable mechanisms MUST NOT claim work.
+        from cybersec.stage62_audit import audit_host
+        host = audit_host()
+        raise ContainmentBlocked('Independent production admission unavailable: '+
+                                 ', '.join(host['blockers'] or host['unproven']))
     stop_event = stop_event or threading.Event()
     claimed = completed = failed = 0
     runner = JobRunner(repository)

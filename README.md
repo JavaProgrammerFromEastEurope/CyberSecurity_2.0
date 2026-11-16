@@ -4,7 +4,7 @@ Stage 59: atomic worker result commit with attempt fencing. See docs/STAGE_59_AT
 
 # Cyber Security Orchestrator 2.0
 
-**Current release: 2.41.0 — Stage 61**
+**Current release: 2.42.0 — Stage 61**
 
 An authorized security assessment orchestrator with evidence provenance, offline cryptographic verification, trust-registry snapshots, and continuous trust monitoring. The project retains earlier stages and their tests.
 
@@ -85,3 +85,14 @@ PYTHONPATH=src python -m cybersec evidence trust-diff --help
 Automated tests and CLI smoke checks do not by themselves establish production readiness. Scanner-enabled deployment, external CI results, supported-runtime verification, and authorized end-to-end lab evidence must be recorded separately before claiming customer readiness.
 
 Stage 57: repository-backed one-shot SQLmap candidate approval (`docs/STAGE_57_SQLMAP_APPROVAL.md`).
+
+
+## Stage 62: Linux cgroup containment and signed lab gate
+
+This release adds a fail-closed cgroup v2 scanner execution candidate and
+an independently signed, per-attempt loopback-lab authorization gate.
+Read `docs/STAGE_62_OS_ENFORCED_CONTAINMENT.md` and
+`deployment/stage62/README.md` before attempting a host rollout.
+Production execution is **BLOCKED/NO-GO** without independent MAC/LSM,
+service-manager and writable delegation evidence. Legacy development APIs
+remain for backward compatibility, **not as production scanner admission**.

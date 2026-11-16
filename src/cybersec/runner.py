@@ -26,6 +26,14 @@ class JobRunner:
         if not target.authorized:
             raise PermissionError("Target authorization acknowledgement is missing; refusing to run job.")
 
+        # Neither direct legacy API nor unconfined worker modes can open
+        # production external scanners. OS MAC must separately fence bypasses.
+        from cybersec.cgroup_containment import production_mode, ContainmentBlocked
+        if production_mode() and job.tool in ('nuclei','zap','sqlmap'):
+            if worker_id is None:
+                raise ContainmentBlocked('Direct legacy scanner production API is prohibited')
+            if job.tool != 'nuclei':
+                raise ContainmentBlocked('Only isolated authorized-lab Nuclei is a Stage 62 candidate')
         # Resolve adapter before changing the job state, so unsupported tools remain queued.
         adapter = self.registry.get(job.tool)
         if worker_id is None:
@@ -48,7 +56,8 @@ class JobRunner:
                 raise ScanCancelled("Worker cancelled before adapter execution")
             result = adapter.run(ScanContext(
                 job_id=job.id, target_url=target.url, tool=job.tool,
-                options={"cancel_event": cancel_event} if worker_id is not None else {},
+                options={"cancel_event": cancel_event, "worker_id": worker_id,
+                         "attempt": claimed_attempt} if worker_id is not None else {},
             ))
             artifact_payload = {
                 "summary": result.summary,

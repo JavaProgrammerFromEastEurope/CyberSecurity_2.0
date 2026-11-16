@@ -197,3 +197,15 @@ Implemented SQLite-backed atomic scan-job claims, worker leases and heartbeats, 
 - Details: `docs/STAGE_61_PROCESS_SUPERVISION.md`.
 
 **Next milestone:** independently isolated, authorized end-to-end process containment and worker restart tests; no production deployment claim without cgroup v2/LSM enforcement and observed external scanner termination.
+
+
+## Stage 62 — OS-Enforced Scanner Containment & Authorized Lab Recovery (2.42.0)
+
+- Added candidate cgroup v2 pre-exec launch gate, real process PID validation,
+  cgroup.kill-based cancellation and fail-closed host preflight.
+- Added per-attempt independent Ed25519 loopback lab permit validation and
+  production direct-API denial without an external permit.
+- Deployment readiness remains NO-GO until independent systemd, four UIDs,
+  MAC/LSM, cgroup delegation, real crash-restart and scanner E2E evidence.
+- Next Stage 63: independent Linux lab integration, cross-UID MAC bypass
+  audit, controlled cgroup kill under double-fork / setsid, and signed recovery.
