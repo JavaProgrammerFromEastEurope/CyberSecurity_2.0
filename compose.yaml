@@ -1,0 +1,30 @@
+services:
+  init:
+    build: .
+    command: ["init"]
+    environment:
+      CYBERSEC_HOME: /var/lib/cybersec
+    volumes:
+      - cybersec-data:/var/lib/cybersec
+    restart: "no"
+
+  worker:
+    build: .
+    profiles: ["worker"]
+    command: ["alert", "worker", "--worker-id", "compose-worker-1", "--idle-seconds", "2", "--max-attempts", "5", "--confirm"]
+    environment:
+      CYBERSEC_HOME: /var/lib/cybersec
+      CYBERSEC_LOG_FILE: /var/log/cybersec/worker.jsonl
+      CYBERSEC_LOG_MAX_BYTES: "5242880"
+      CYBERSEC_LOG_BACKUPS: "3"
+      CYBERSEC_WEBHOOK_URL: ${CYBERSEC_WEBHOOK_URL:-}
+      CYBERSEC_WEBHOOK_ALLOWED_HOSTS: ${CYBERSEC_WEBHOOK_ALLOWED_HOSTS:-}
+    volumes:
+      - cybersec-data:/var/lib/cybersec
+      - cybersec-logs:/var/log/cybersec
+    restart: unless-stopped
+    stop_grace_period: 30s
+
+volumes:
+  cybersec-data:
+  cybersec-logs:

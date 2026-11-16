@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cybersec-orchestrator"
+version = "2.40.0"
+description = "Authorized security assessment orchestrator with passive ZAP and conservative Nuclei integration, finding normalization, deduplication, explainable risk triage, and filtered executive and technical HTML reporting, raw scanner artifact retention, provenance, import/replay, JSONL ingestion, validation summaries, and export integrity manifests, offline comparison of retained results between scan jobs, and persistent comparison history, opt-in webhook delivery with payload redaction, idempotency keys, allowlisted destinations, and explicit retry controls, lease-based concurrent worker claims, bounded retry scheduling, long-running graceful workers, quarantine of repeatedly failing notifications, and structured worker logs, durable queue metrics, SQLite health checks, and expired-lease diagnostics, versioned local API routes, OpenAPI 3.1 documentation, bounded pagination, list filters, resource detail endpoints, request IDs, unified error codes, per-client rate limiting, and a loopback-only typed API client with safe GET retries, bounded timeouts, typed pagination, and no automatic replay of mutating requests, environment-based client configuration, remote CLI commands, API contract smoke tests, and a self-contained local dashboard with severity distribution, CSV export of filtered rows, saved comparison history, target reports with daily finding trends, and record details, explainable risk prioritization, multi-target portfolio reports, and contextual risk scoring with analyst-set target criticality, remediation task tracking with assignees, due dates, statuses, notes and overdue summaries, severity-based configurable remediation SLA policies, calculated SLA states, persistent remediation audit history, and verification evidence with a closure gate in the API, period-filtered remediation performance metrics including average and median resolution time, SLA compliance, verification coverage, target/assignee/severity breakdowns, authenticated JSON/CSV exports, daily remediation trends, equal-length previous-period comparison, and persistent trend snapshots, explainable risk intelligence alerts for target finding growth, recurring findings after remediation, overdue SLA backlog, analyst acknowledgement and alert history, configurable risk rule thresholds, target-criticality priority tuning, filtered alert queries, and non-persistent historical rule previews, reviewer-assigned temporary policy exceptions with expiry and audit, and configurable evaluation-history retention, immutable SHA-256-verified policy-compliance evidence snapshots, secret redaction, JSON/CSV compliance report exports, and portable manifest-based evidence bundles with optional HMAC-SHA256 authentication, source provenance, and hash-chained chain-of-custody audit events with replay detection, and Ed25519-signed evidence bundles with trusted-key registration, revocation, audit, and signed external custody checkpoints, atomic signing-key rotation, and offline Ed25519 evidence verification, and hash-chained offline revalidation history with portable audit package verification, and durable SQLite scanner-job leases with dedicated worker processes, bounded retries, lease recovery, and cancellation requests"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Cyber Security Project" }]
+dependencies = ["cryptography>=42.0"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+cybersec = "cybersec.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
