@@ -1,3 +1,11 @@
+## 2.41.0 — Stage 61: Local Scanner Process Supervision
+- Supervised Nuclei worker subprocesses with bounded output/deadline, POSIX process-group SIGTERM/SIGKILL escalation, no shell, and no implicit retries.
+- Scan worker observes cancel, revoked/expired lease, and stop_event during execution; CLI handles SIGTERM/SIGINT.
+- Attempt token is now optional and enforced for worker finalization to prevent recycled-worker-id stale writes; existing API remains available.
+- ZAP passive polling cooperatively exits on cancellation but does not terminate the shared daemon.
+- Updated Stage 60-to-61 roadmap reconciliation and documented NO-GO for external process, cgroup and customer production acceptance.
+- Strict regression and raw run evidence accompany release artifacts; earlier failed/incomplete runs are retained.
+
 Stage 60: conservative scanner execution recovery policy. See docs/STAGE_60_EXECUTION_RECOVERY.md.
 Stage 59: atomic worker result commit with attempt fencing. See docs/STAGE_59_ATOMIC_RESULT_COMMIT.md.
 

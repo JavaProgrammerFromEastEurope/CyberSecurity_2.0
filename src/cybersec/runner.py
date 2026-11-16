@@ -10,7 +10,8 @@ class JobRunner:
         self.repository = repository
         self.registry = registry or default_registry()
 
-    def run(self, job_id: int, *, worker_id: str | None = None) -> ScanResult:
+    def run(self, job_id: int, *, worker_id: str | None = None,
+            cancel_event=None) -> ScanResult:
         job = self.repository.get_job(job_id)
         if job is None:
             raise ValueError(f"Job #{job_id} does not exist.")
@@ -37,10 +38,18 @@ class JobRunner:
             self.repository.assert_active_scan_lease(job_id, worker_id)
             claimed_attempt = int(lease["attempt_count"])
             if lease["cancel_requested_at"]:
-                self.repository.finish_claimed_scan_job(job_id, worker_id, error="Cancellation requested before scanner start.")
+                self.repository.finish_claimed_scan_job(
+                    job_id, worker_id, error="Cancellation requested before scanner start.", attempt=claimed_attempt,
+                )
                 raise RuntimeError(f"Scan job #{job_id} was cancelled before scanner start.")
         try:
-            result = adapter.run(ScanContext(job_id=job.id, target_url=target.url, tool=job.tool))
+            if cancel_event is not None and cancel_event.is_set():
+                from cybersec.process_supervision import ScanCancelled
+                raise ScanCancelled("Worker cancelled before adapter execution")
+            result = adapter.run(ScanContext(
+                job_id=job.id, target_url=target.url, tool=job.tool,
+                options={"cancel_event": cancel_event} if worker_id is not None else {},
+            ))
             artifact_payload = {
                 "summary": result.summary,
                 "raw_output": result.raw_output,
@@ -67,7 +76,12 @@ class JobRunner:
         except Exception as exc:
             if worker_id is not None:
                 try:
-                    self.repository.finish_claimed_scan_job(job_id, worker_id, error=f"{type(exc).__name__}: {exc}")
+                    error = f"{type(exc).__name__}: {exc}"
+                    if isinstance(exc, __import__("cybersec.process_supervision", fromlist=["ScanCancelled"]).ScanCancelled):
+                        error += " (manual recovery required if remote effects are uncertain)"
+                    self.repository.finish_claimed_scan_job(
+                        job_id, worker_id, error=error, attempt=claimed_attempt,
+                    )
                 except RuntimeError:
                     pass
             else:

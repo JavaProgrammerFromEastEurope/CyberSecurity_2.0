@@ -199,7 +199,29 @@ class Repository:
         if row is None:
             raise RuntimeError(f"Worker {worker_id!r} has no active lease for scan job #{job_id}.")
 
-    def finish_claimed_scan_job(self, job_id: int, worker_id: str, *, error: str | None = None) -> ScanJob:
+    def inspect_scan_execution(self, job_id: int, worker_id: str, attempt: int) -> str:
+        """Read-only signal for worker abort; no lease extension or status mutation."""
+        with connect(self.db_path) as db:
+            row = db.execute(
+                """SELECT status, lease_owner, attempt_count, lease_until, cancel_requested_at
+                   FROM scan_jobs WHERE id=?""", (job_id,)
+            ).fetchone()
+            if row is None or row["status"] != "running" or row["lease_owner"] != worker_id \
+                    or row["attempt_count"] != attempt or row["lease_until"] is None:
+                return "lost"
+            if row["cancel_requested_at"] is not None:
+                return "cancelled"
+            valid = db.execute(
+                """SELECT 1 FROM scan_jobs WHERE id=?
+                   AND lease_until > strftime('%Y-%m-%dT%H:%M:%fZ','now')""", (job_id,)
+            ).fetchone()
+            return "active" if valid is not None else "lost"
+
+    def finish_claimed_scan_job(self, job_id: int, worker_id: str, *,
+                                error: str | None = None,
+                                attempt: int | None = None) -> ScanJob:
+        if attempt is not None and (not isinstance(attempt, int) or isinstance(attempt, bool) or attempt < 1):
+            raise ValueError("attempt must be a positive integer")
         status = "failed" if error else "completed"
         with connect(self.db_path) as db:
             cursor = db.execute(
@@ -210,8 +232,9 @@ class Repository:
                                   THEN 'Cancellation requested.' ELSE ? END,
                        lease_owner=NULL, lease_until=NULL
                    WHERE id=? AND status='running' AND lease_owner=?
-                     AND lease_until > strftime('%Y-%m-%dT%H:%M:%fZ','now')""",
-                (status, error, job_id, worker_id)
+                     AND lease_until > strftime('%Y-%m-%dT%H:%M:%fZ','now')
+                     AND (? IS NULL OR attempt_count=?)""",
+                (status, error, job_id, worker_id, attempt, attempt)
             )
             if cursor.rowcount != 1:
                 raise RuntimeError(f"Worker {worker_id!r} no longer owns scan job #{job_id}.")

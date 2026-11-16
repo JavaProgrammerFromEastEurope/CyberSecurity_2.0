@@ -186,3 +186,14 @@ See `docs/INTEGRATION_PLAN.md`. Stage 55 is the durable scanner-job execution fo
 ## Stage 55 — Durable Scanner Job Execution Foundation (2.35.0)
 
 Implemented SQLite-backed atomic scan-job claims, worker leases and heartbeats, bounded retries, expired-lease recovery, a dedicated scanner worker CLI, and persisted cancellation requests. See `STAGE_55_SCANNER_WORKERS.md`. Running external scanner processes are not yet forcibly interrupted by cancellation.
+
+## Stage 61 — Local Scanner Process Supervision (v2.41.0)
+
+- Verified local process-group supervision for **worker-owned** Nuclei launches: bounded runtime/output, persisted cancel and lease-loss polling, SIGTERM → SIGKILL escalation.
+- Added optional lease-attempt fencing on worker error completion and a SIGTERM/SIGINT shutdown path for the scanner-worker CLI.
+- Kept ZAP passive-only; its cancellation is cooperative and cannot guarantee termination of the separate ZAP daemon.
+- Preserved Stage 60 failed/manual recovery policy for uncertain external actions. No automatic restart of externally-effectful work.
+- Retained known gaps in `docs/INTEGRATION_PLAN.md`: its Stage 55–60 items were acceptance *goals*, not proof that PDF, RBAC, scanner-enabled lab E2E or the whole release-candidate program were delivered by Stage 60.
+- Details: `docs/STAGE_61_PROCESS_SUPERVISION.md`.
+
+**Next milestone:** independently isolated, authorized end-to-end process containment and worker restart tests; no production deployment claim without cgroup v2/LSM enforcement and observed external scanner termination.

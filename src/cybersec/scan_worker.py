@@ -20,37 +20,67 @@ class WorkerSummary:
 
 
 class _LeaseHeartbeat:
-    def __init__(self, repository: Repository, job_id: int, worker_id: str, lease_seconds: int):
+    def __init__(self, repository: Repository, job_id: int, worker_id: str,
+                 lease_seconds: int, shutdown_event: threading.Event | None = None):
         self.repository = repository
         self.job_id = job_id
         self.worker_id = worker_id
         self.lease_seconds = lease_seconds
+        self.shutdown_event = shutdown_event
         self.stop_event = threading.Event()
         self.lost = threading.Event()
+        self.abort_event = threading.Event()
+        self.cancelled = threading.Event()
+        self.attempt = None
         self.thread = threading.Thread(target=self._run, name=f"scan-lease-{job_id}", daemon=True)
 
     def _run(self) -> None:
-        interval = max(1.0, self.lease_seconds / 3)
-        while not self.stop_event.wait(interval):
+        next_renewal = time.monotonic() + self.lease_seconds / 3
+        while not self.stop_event.wait(0.2):
+            if self.shutdown_event is not None and self.shutdown_event.is_set():
+                self.abort_event.set()
+                return
             try:
-                if not self.repository.renew_scan_job_lease(
-                    self.job_id, self.worker_id, lease_seconds=self.lease_seconds
-                ):
+                state = self.repository.inspect_scan_execution(
+                    self.job_id, self.worker_id, self.attempt
+                )
+                if state == "cancelled":
+                    self.cancelled.set()
+                    self.abort_event.set()
+                    return
+                if state != "active":
                     self.lost.set()
+                    self.abort_event.set()
                     logger.error("Lost lease for scan job #%s", self.job_id)
                     return
+                if time.monotonic() >= next_renewal:
+                    if not self.repository.renew_scan_job_lease(
+                        self.job_id, self.worker_id, lease_seconds=self.lease_seconds
+                    ):
+                        self.lost.set()
+                        self.abort_event.set()
+                        logger.error("Cannot renew lease for scan job #%s", self.job_id)
+                        return
+                    next_renewal = time.monotonic() + self.lease_seconds / 3
             except Exception:
                 self.lost.set()
-                logger.exception("Could not renew lease for scan job #%s", self.job_id)
+                self.abort_event.set()
+                logger.exception("Could not inspect/renew lease for scan job #%s", self.job_id)
                 return
 
     def __enter__(self):
+        with __import__("cybersec.db", fromlist=["connect"]).connect(self.repository.db_path) as db:
+            row = db.execute("SELECT attempt_count FROM scan_jobs WHERE id=?", (self.job_id,)).fetchone()
+        self.attempt = int(row["attempt_count"]) if row else None
         self.thread.start()
         return self
 
     def __exit__(self, *_):
         self.stop_event.set()
         self.thread.join(timeout=max(2.0, self.lease_seconds / 3 + 1))
+        if self.thread.is_alive():
+            from cybersec.process_supervision import ScanExecutionUncertain
+            raise ScanExecutionUncertain("Lease observer did not stop; worker must not claim another job")
 
 
 def run_scan_worker(repository: Repository, *, worker_id: str, lease_seconds: int = 60,
@@ -80,8 +110,9 @@ def run_scan_worker(repository: Repository, *, worker_id: str, lease_seconds: in
             continue
         claimed += 1
         try:
-            with _LeaseHeartbeat(repository, job.id, worker_id, lease_seconds):
-                runner.run(job.id, worker_id=worker_id)
+            with _LeaseHeartbeat(repository, job.id, worker_id, lease_seconds,
+                                 shutdown_event=stop_event) as monitor:
+                runner.run(job.id, worker_id=worker_id, cancel_event=monitor.abort_event)
             current = repository.get_job(job.id)
             if current and current.status == "completed":
                 completed += 1

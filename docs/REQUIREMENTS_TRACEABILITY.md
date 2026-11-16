@@ -73,3 +73,13 @@ A release must not be called customer-ready until all of the following are evide
 | Bounded retry attempts | Implemented | Attempt count and configured maximum are persisted. |
 | Running-job cancellation | Partial | Cancellation request is persisted; universal immediate process interruption is not supported by the synchronous adapter contract. |
 | Exactly-once scanner execution | Missing / not guaranteed | A crash after external scanner side effects can cause a retry. |
+
+## Stage 61 additional traceability (v2.41.0)
+
+| Requirement | Status | Evidence | Remaining work |
+| --- | --- | --- | --- |
+| Worker Nuclei process interruption | Partial (local POSIX) | `process_supervision.py`; `test_stage61_process_supervision.py` | cgroup/LSM isolation, systemd E2E and scanner binary integration |
+| SIGTERM/SIGINT scanner-worker shutdown | Implemented in CLI, locally tested | `cli.py`, `scan_worker.py`, Stage 61 tests | host service-manager restart and abrupt SIGKILL verification |
+| Lease cancellation/attempt fencing | Implemented for worker-owned jobs | `repository.py`, `runner.py`, Stage 58–61 tests | cross-process and service-manager end-to-end |
+| ZAP passive cancellation | Partial | ZAP adapter checks cancellation, Stage 61 tests | independent ZAP daemon stop/teardown proof; do not assume instant cancellation |
+| Customer deployment | Not externally verified | no real scanner/lab/OS containment evidence | preserve NO-GO |

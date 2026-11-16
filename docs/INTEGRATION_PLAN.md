@@ -108,3 +108,7 @@ Acceptance:
 ## Sequencing rule
 
 Do not begin a dependent stage until its predecessor's acceptance tests pass. If a stage exposes a safety or data-integrity defect, fix it before adding another feature.
+
+## Actual implementation reconciliation — Stage 61
+
+The aspirational Stage 55–60 work packages above are a requirements baseline, **not an assertion of delivered scope**. The actual Stage 55–60 releases implemented durable leases, bounded sqlmap candidate checks, sqlmap approval, lease fencing, atomic result commit, and conservative external-scanner recovery. Items such as explicitly authorized active ZAP profiles, semantic correlation, PDF report equivalence, client-isolated release topology, and full authorized E2E were **not evidenced** in the Stage 60 source. Stage 61 improves local process supervision but does not close those independent product-acceptance gates. See `STAGE_61_PROCESS_SUPERVISION.md`.

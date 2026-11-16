@@ -29,7 +29,7 @@ def _repository() -> Repository:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="cybersec",
-        description="Authorized security assessment orchestrator — Stage 53 with tamper-evident revalidation history.",
+        description="Authorized security assessment orchestrator — Stage 61 scanner process supervision.",
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
@@ -339,11 +339,24 @@ def main(argv: list[str] | None = None) -> int:
             print(json.dumps({"exported": True, "output": str(output), "key_count": len(snapshot["keys"]), "audit_event_count": len(snapshot["audit_events"]), "snapshot_sha256": snapshot["snapshot_sha256"], "private_key_exported": False}, indent=2, ensure_ascii=False))
         elif args.command == "scanner-worker":
             from cybersec.scan_worker import run_scan_worker
-            summary = run_scan_worker(
-                repo, worker_id=args.worker_id, lease_seconds=args.lease_seconds,
-                idle_seconds=args.idle_seconds, max_jobs=args.max_jobs,
-                max_attempts=args.max_attempts,
-            )
+            import signal
+            import threading
+            stop = threading.Event()
+            old_term = signal.getsignal(signal.SIGTERM)
+            old_int = signal.getsignal(signal.SIGINT)
+            def stop_worker(_signum, _frame):
+                stop.set()
+            signal.signal(signal.SIGTERM, stop_worker)
+            signal.signal(signal.SIGINT, stop_worker)
+            try:
+                summary = run_scan_worker(
+                    repo, worker_id=args.worker_id, lease_seconds=args.lease_seconds,
+                    idle_seconds=args.idle_seconds, max_jobs=args.max_jobs,
+                    max_attempts=args.max_attempts, stop_event=stop,
+                )
+            finally:
+                signal.signal(signal.SIGTERM, old_term)
+                signal.signal(signal.SIGINT, old_int)
             print(json.dumps(summary.__dict__, indent=2))
         elif args.command == "api":
             if args.api_command == "serve":

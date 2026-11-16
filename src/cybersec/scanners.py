@@ -146,16 +146,25 @@ class ZapPassiveAdapter:
         return parsed.scheme.lower(), parsed.hostname.lower().rstrip("."), port
 
     def run(self, context: ScanContext) -> ScanResult:
+        from cybersec.process_supervision import ScanCancelled
+        abort = context.options.get("cancel_event")
+        def check_abort():
+            if abort is not None and abort.is_set():
+                raise ScanCancelled("ZAP passive workflow cancelled; remote processing status unknown")
+        check_abort()
         target = context.target_url
         origin = self._origin(target)
         # Keep URL paths and query but remove fragments; fragments are never sent over HTTP.
         parsed_target = urlparse(target)
         target = urlunparse((parsed_target.scheme, parsed_target.netloc, parsed_target.path or "/", "", parsed_target.query, ""))
         self._api("core", "view", "version")  # fail fast before changing target state
+        check_abort()
         self._api("core", "action", "accessUrl", {"url": target, "followRedirects": "false"})
+        check_abort()
         deadline = time.monotonic() + self.max_wait
         records_to_scan = None
         while time.monotonic() < deadline:
+            check_abort()
             response = self._api("pscan", "view", "recordsToScan")
             try:
                 records_to_scan = int(response.get("recordsToScan", 0))
@@ -163,11 +172,17 @@ class ZapPassiveAdapter:
                 records_to_scan = 0
             if records_to_scan <= 0:
                 break
-            time.sleep(self.poll_interval)
+            if abort is not None:
+                if abort.wait(self.poll_interval):
+                    check_abort()
+            else:
+                time.sleep(self.poll_interval)
         else:
             raise TimeoutError(f"ZAP passive scan did not drain within {self.max_wait:g} seconds.")
 
+        check_abort()
         alerts_response = self._api("core", "view", "alerts", {"baseurl": target, "start": 0, "count": 500})
+        check_abort()
         alerts = alerts_response.get("alerts", [])
         if not isinstance(alerts, list):
             alerts = []
@@ -260,10 +275,19 @@ class NucleiAdapter:
             "-severity", "info,low,medium,high,critical",
         ]
         try:
-            completed = subprocess.run(
-                command, capture_output=True, text=True, timeout=self.timeout,
-                check=False, shell=False,
-            )
+            # Worker-owned processes must use the supervised POSIX process group.
+            # Keep the public, direct adapter API for compatibility with Stage 4.
+            if "cancel_event" in context.options:
+                from cybersec.process_supervision import run_supervised
+                completed = run_supervised(command, timeout=self.timeout,
+                                           cancel_event=context.options["cancel_event"])
+                if completed.stdout_truncated or completed.stderr_truncated:
+                    raise RuntimeError("Nuclei output exceeded bounded retention; result incomplete")
+            else:
+                completed = subprocess.run(
+                    command, capture_output=True, text=True, timeout=self.timeout,
+                    check=False, shell=False,
+                )
         except subprocess.TimeoutExpired as exc:
             raise TimeoutError(f"Nuclei exceeded the {self.timeout:g}-second job timeout.") from exc
         except OSError as exc:

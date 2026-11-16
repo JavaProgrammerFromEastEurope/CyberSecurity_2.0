@@ -76,7 +76,7 @@ def test_old_database_gets_provenance_columns_and_artifact_table(tmp_path):
     db.commit()
     db.close()
     repo = Repository(path)
-    with sqlite3.connect(path) as db:
+    with __import__("contextlib").closing(sqlite3.connect(path)) as db:
         columns = {row[1] for row in db.execute("PRAGMA table_info(normalized_findings)")}
         tables = {row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
     assert {"fingerprint", "source_id", "template_id", "observed_at"} <= columns

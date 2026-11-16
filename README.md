@@ -1,9 +1,10 @@
+Stage 61: worker-owned Nuclei process supervision, cooperative cancellation, POSIX SIGTERM/SIGKILL escalation and fencing. See docs/STAGE_61_PROCESS_SUPERVISION.md.
 Stage 60: conservative scanner execution recovery policy. See docs/STAGE_60_EXECUTION_RECOVERY.md.
 Stage 59: atomic worker result commit with attempt fencing. See docs/STAGE_59_ATOMIC_RESULT_COMMIT.md.
 
 # Cyber Security Orchestrator 2.0
 
-**Current release: 2.36.0 — Stage 56**
+**Current release: 2.41.0 — Stage 61**
 
 An authorized security assessment orchestrator with evidence provenance, offline cryptographic verification, trust-registry snapshots, and continuous trust monitoring. The project retains earlier stages and their tests.
 
