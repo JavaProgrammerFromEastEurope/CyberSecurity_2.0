@@ -209,3 +209,12 @@ Implemented SQLite-backed atomic scan-job claims, worker leases and heartbeats, 
   MAC/LSM, cgroup delegation, real crash-restart and scanner E2E evidence.
 - Next Stage 63: independent Linux lab integration, cross-UID MAC bypass
   audit, controlled cgroup kill under double-fork / setsid, and signed recovery.
+
+
+## Stage 63 — Independent Linux Lab E2E & Mandatory MAC Confinement (v2.43.0)
+
+Implemented review-only kernel LSM/systemd/four-UID observation and signed recovery receipt verification; no production permit. Host remains BLOCKED/NO-GO without independently observed same-UID MAC deny, cgroup escape and systemd restart tests, secure TPM CAS and authorized lab.
+
+### Stage 64 candidate — External Lab Runtime Proof & Durable Recovery Authority
+
+Prioritize real four-UID Linux host commissioning, verified kernel MAC denial, independent witness CAS and cgroup lifecycle evidence. Do not label unexecuted tests or unsigned approvals PASS.

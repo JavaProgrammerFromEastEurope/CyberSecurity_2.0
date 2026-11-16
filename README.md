@@ -96,3 +96,8 @@ Read `docs/STAGE_62_OS_ENFORCED_CONTAINMENT.md` and
 Production execution is **BLOCKED/NO-GO** without independent MAC/LSM,
 service-manager and writable delegation evidence. Legacy development APIs
 remain for backward compatibility, **not as production scanner admission**.
+
+
+### Stage 63 (2.43.0) — independent host MAC & recovery gate
+
+`python -m cybersec.stage63_host` performs a **read-only** host audit and exits 3 (`BLOCKED/NO-GO`). `cybersec.recovery_authority` reviews independently signed recovery receipts but intentionally cannot consume a hardware one-use permit. No active scanning or production admission is authorized by this stage. See `docs/STAGE_63_INDEPENDENT_LINUX_LAB_MAC.md`.

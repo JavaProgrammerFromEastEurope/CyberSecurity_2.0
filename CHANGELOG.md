@@ -1,3 +1,11 @@
+## 2.43.0 — Stage 63: Independent Linux Lab E2E & Mandatory MAC Confinement (fail-closed candidate)
+
+- Added read-only independent service and kernel LSM audit for four separate UIDs, systemd service identities, `/proc` PID/starttime and cgroup evidence.
+- Added signed recovery receipt verifier bound to exact job/attempt, boot ID, checkpoint digest and monotonic counter progression. Without independent CAS/TPM authority the recovery gate always rejects.
+- Added safe local negative E2E, process lifecycle and fail-closed test suite; production network scanners remain disabled without independent admission.
+- Added kernel MAC confinement requirements and external acceptance test plan; did not install policies or claim a real MAC/LSM proof.
+- **Production remains BLOCKED/NO-GO**; no active external scanning was executed on the development host.
+
 # Stage 62 — 2.42.0 (OS-Enforced Containment Candidate)
 
 - Added fail-closed cgroup v2 execution gate and blocked trampoline, exact PID

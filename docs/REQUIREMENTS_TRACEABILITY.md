@@ -83,3 +83,8 @@ A release must not be called customer-ready until all of the following are evide
 | Lease cancellation/attempt fencing | Implemented for worker-owned jobs | `repository.py`, `runner.py`, Stage 58–61 tests | cross-process and service-manager end-to-end |
 | ZAP passive cancellation | Partial | ZAP adapter checks cancellation, Stage 61 tests | independent ZAP daemon stop/teardown proof; do not assume instant cancellation |
 | Customer deployment | Not externally verified | no real scanner/lab/OS containment evidence | preserve NO-GO |
+
+
+## Stage 63 — read-only independent Linux lab and MAC admission
+
+C63-01/C63-02: host audit and four-role service/PID/UID checks implemented; independent host evidence unavailable (NO-GO). C63-03: same-UID OS-MAC and cgroup migration deny requires real LSM policy enforcement (BLOCKED). C63-04: local signal tests PASS; cross-cgroup detached descendant E2E blocked. C63-05: existing signed loopback permit review, no real owner approval. C63-06: Ed25519 recovery receipt verifier, external monotonic CAS not available; recovery admission always denied. C63-07/C63-08: production scanner remains disabled without independent admission, full strict regression results in evidence.
