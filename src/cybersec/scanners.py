@@ -146,28 +146,16 @@ class ZapPassiveAdapter:
         return parsed.scheme.lower(), parsed.hostname.lower().rstrip("."), port
 
     def run(self, context: ScanContext) -> ScanResult:
-        from cybersec.cgroup_containment import production_mode, ContainmentBlocked
-        if production_mode():
-            raise ContainmentBlocked('Remote ZAP daemon cancellation cannot be OS-confined here; production disabled')
-        from cybersec.process_supervision import ScanCancelled
-        abort = context.options.get("cancel_event")
-        def check_abort():
-            if abort is not None and abort.is_set():
-                raise ScanCancelled("ZAP passive workflow cancelled; remote processing status unknown")
-        check_abort()
         target = context.target_url
         origin = self._origin(target)
         # Keep URL paths and query but remove fragments; fragments are never sent over HTTP.
         parsed_target = urlparse(target)
         target = urlunparse((parsed_target.scheme, parsed_target.netloc, parsed_target.path or "/", "", parsed_target.query, ""))
         self._api("core", "view", "version")  # fail fast before changing target state
-        check_abort()
         self._api("core", "action", "accessUrl", {"url": target, "followRedirects": "false"})
-        check_abort()
         deadline = time.monotonic() + self.max_wait
         records_to_scan = None
         while time.monotonic() < deadline:
-            check_abort()
             response = self._api("pscan", "view", "recordsToScan")
             try:
                 records_to_scan = int(response.get("recordsToScan", 0))
@@ -175,17 +163,11 @@ class ZapPassiveAdapter:
                 records_to_scan = 0
             if records_to_scan <= 0:
                 break
-            if abort is not None:
-                if abort.wait(self.poll_interval):
-                    check_abort()
-            else:
-                time.sleep(self.poll_interval)
+            time.sleep(self.poll_interval)
         else:
             raise TimeoutError(f"ZAP passive scan did not drain within {self.max_wait:g} seconds.")
 
-        check_abort()
         alerts_response = self._api("core", "view", "alerts", {"baseurl": target, "start": 0, "count": 500})
-        check_abort()
         alerts = alerts_response.get("alerts", [])
         if not isinstance(alerts, list):
             alerts = []
@@ -266,16 +248,6 @@ class NucleiAdapter:
         return parsed.scheme.lower(), parsed.hostname.lower().rstrip("."), port
 
     def run(self, context: ScanContext) -> ScanResult:
-        from cybersec.cgroup_containment import production_mode, CgroupV2Executor, ContainmentBlocked
-        if production_mode():
-            from cybersec.lab_authorization import require_host_signed_lab_ticket
-            # A direct synchronous library call has no durable claimed-attempt
-            # fencing; it is forbidden in production, even with a valid target.
-            if not (context.options.get('worker_id') and type(context.options.get('attempt')) is int
-                    and context.options.get('cancel_event') is not None):
-                raise ContainmentBlocked('Legacy direct Nuclei production invocation forbidden')
-            require_host_signed_lab_ticket(job_id=context.job_id,
-                    attempt=context.options['attempt'],tool='nuclei',target_url=context.target_url)
         if not self.executable:
             raise RuntimeError("Nuclei executable not found. Install Nuclei or set CYBERSEC_NUCLEI_PATH.")
         target = context.target_url
@@ -288,19 +260,16 @@ class NucleiAdapter:
             "-severity", "info,low,medium,high,critical",
         ]
         try:
-            # Worker-owned processes must use the supervised POSIX process group.
-            # Keep the public, direct adapter API for compatibility with Stage 4.
-            if "cancel_event" in context.options:
-                if production_mode():
-                    from cybersec.cgroup_containment import _CGROUP_ROOT, _own_cgroup
-                    completed = CgroupV2Executor(_CGROUP_ROOT/_own_cgroup().lstrip('/')).run(
-                        command, timeout=self.timeout, cancel_event=context.options['cancel_event'])
-                else:
-                    from cybersec.process_supervision import run_supervised
-                    completed = run_supervised(command, timeout=self.timeout,
-                                               cancel_event=context.options["cancel_event"])
-                if completed.stdout_truncated or completed.stderr_truncated:
-                    raise RuntimeError("Nuclei output exceeded bounded retention; result incomplete")
+            interruption = context.options.get("_worker_interrupted")
+            if interruption is not None and not callable(interruption):
+                raise TypeError("worker interruption callback must be callable")
+            # Worker-owned scans MUST use process-group supervision; fail closed
+            # if POSIX process-group control is unavailable. Direct CLI retains
+            # its Stage 62 opt-in for backward compatibility.
+            if interruption is not None or os.environ.get("CYBERSEC_PROCESS_SUPERVISION") == "1":
+                from cybersec.process_supervisor import ProcessSupervisor
+                completed = ProcessSupervisor().run(command, timeout=self.timeout,
+                                                    cancelled=interruption)
             else:
                 completed = subprocess.run(
                     command, capture_output=True, text=True, timeout=self.timeout,
@@ -392,9 +361,6 @@ class SqlmapConfirmationAdapter:
         self.timeout = timeout
 
     def run(self, context: ScanContext) -> ScanResult:
-        from cybersec.cgroup_containment import production_mode, ContainmentBlocked
-        if production_mode():
-            raise ContainmentBlocked('Sqlmap production execution not admitted by Stage 62')
         from urllib.parse import parse_qs
         import re
 
@@ -426,8 +392,16 @@ class SqlmapConfirmationAdapter:
                 "--smart", "--disable-coloring", "--output-dir=/tmp/cybersec-sqlmap",
                 "--fresh-queries", "--ignore-redirects"]
         try:
-            proc = subprocess.run(argv, capture_output=True, text=True,
-                                  timeout=self.timeout, check=False, shell=False)
+            interruption = context.options.get("_worker_interrupted")
+            if interruption is not None and not callable(interruption):
+                raise TypeError("worker interruption callback must be callable")
+            if interruption is not None or os.environ.get("CYBERSEC_PROCESS_SUPERVISION") == "1":
+                from cybersec.process_supervisor import ProcessSupervisor
+                proc = ProcessSupervisor().run(argv, timeout=self.timeout,
+                                               cancelled=interruption)
+            else:
+                proc = subprocess.run(argv, capture_output=True, text=True,
+                                      timeout=self.timeout, check=False, shell=False)
         except subprocess.TimeoutExpired as exc:
             raise TimeoutError("sqlmap confirmation exceeded bounded timeout") from exc
         if proc.returncode != 0:

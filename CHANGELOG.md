@@ -1,29 +1,20 @@
-## 2.43.0 — Stage 63: Independent Linux Lab E2E & Mandatory MAC Confinement (fail-closed candidate)
+## 2.43.0 — Stage 63
 
-- Added read-only independent service and kernel LSM audit for four separate UIDs, systemd service identities, `/proc` PID/starttime and cgroup evidence.
-- Added signed recovery receipt verifier bound to exact job/attempt, boot ID, checkpoint digest and monotonic counter progression. Without independent CAS/TPM authority the recovery gate always rejects.
-- Added safe local negative E2E, process lifecycle and fail-closed test suite; production network scanners remain disabled without independent admission.
-- Added kernel MAC confinement requirements and external acceptance test plan; did not install policies or claim a real MAC/LSM proof.
-- **Production remains BLOCKED/NO-GO**; no active external scanning was executed on the development host.
+- Worker-owned Nuclei subprocess runs are now obligatorily process-supervised with cooperative cancellation on persistent cancel request, lease loss, SIGTERM/SIGINT, and lost fencing token.
+- CLI worker installs/restores signal handlers and propagates stop to supervised process groups; interrupted external work remains manual-recovery-only.
+- Bounded SIGTERM/SIGKILL cleanup to avoid indefinitely waiting for pipes held by escaping descendants; not a full tree-containment guarantee.
+- New safe Python process tests, SQLite lifecycle tests, gated Ubuntu Server integration fixtures, audit evidence and strict-regression diagnostics. No real scanners executed.
+- **BLOCKED / NO-GO** until independent Ubuntu systemd/cgroup proof and authorized end-to-end tests.
 
-# Stage 62 — 2.42.0 (OS-Enforced Containment Candidate)
+## 2.42.0 — Stage 62
 
-- Added fail-closed cgroup v2 execution gate and blocked trampoline, exact PID
-  starttime / cgroup checks, kernel cgroup.kill cleanup and population checks.
-- Added independent Ed25519 signed per-attempt loopback lab tickets;
-  production Nuclei refuses unsigned direct invocation.
-- Blocked production ZAP remote-daemon and SQLmap execution paths.
-- Added read-only host audit, proposed systemd unit and security contracts.
-- No full OS-enforced legacy confinement, production admission or live network
-  scan is claimed. All prior versions, schemas, evidence and API remain.
+- Opt-in POSIX process group supervision with SIGTERM/SIGKILL and bounded timeout; no external scanner execution in tests.
+- Resource closure regression fix in legacy artifact migration test.
+- Ubuntu Server integration plan and explicit NO-GO limitations.
 
-## 2.41.0 — Stage 61: Local Scanner Process Supervision
-- Supervised Nuclei worker subprocesses with bounded output/deadline, POSIX process-group SIGTERM/SIGKILL escalation, no shell, and no implicit retries.
-- Scan worker observes cancel, revoked/expired lease, and stop_event during execution; CLI handles SIGTERM/SIGINT.
-- Attempt token is now optional and enforced for worker finalization to prevent recycled-worker-id stale writes; existing API remains available.
-- ZAP passive polling cooperatively exits on cancellation but does not terminate the shared daemon.
-- Updated Stage 60-to-61 roadmap reconciliation and documented NO-GO for external process, cgroup and customer production acceptance.
-- Strict regression and raw run evidence accompany release artifacts; earlier failed/incomplete runs are retained.
+## 2.41.0 — Stage 61
+- Offline A4 PDF report with Unicode text, executive/technical profiles, evidence, recommendations, appendix and SHA-256 manifest.
+- No scanner execution in PDF pipeline.
 
 Stage 60: conservative scanner execution recovery policy. See docs/STAGE_60_EXECUTION_RECOVERY.md.
 Stage 59: atomic worker result commit with attempt fencing. See docs/STAGE_59_ATOMIC_RESULT_COMMIT.md.

@@ -1,10 +1,9 @@
-Stage 61: worker-owned Nuclei process supervision, cooperative cancellation, POSIX SIGTERM/SIGKILL escalation and fencing. See docs/STAGE_61_PROCESS_SUPERVISION.md.
 Stage 60: conservative scanner execution recovery policy. See docs/STAGE_60_EXECUTION_RECOVERY.md.
 Stage 59: atomic worker result commit with attempt fencing. See docs/STAGE_59_ATOMIC_RESULT_COMMIT.md.
 
 # Cyber Security Orchestrator 2.0
 
-**Current release: 2.42.0 — Stage 61**
+**Current release: 2.43.0 — Stage 63**
 
 An authorized security assessment orchestrator with evidence provenance, offline cryptographic verification, trust-registry snapshots, and continuous trust monitoring. The project retains earlier stages and their tests.
 
@@ -86,18 +85,12 @@ Automated tests and CLI smoke checks do not by themselves establish production r
 
 Stage 57: repository-backed one-shot SQLmap candidate approval (`docs/STAGE_57_SQLMAP_APPROVAL.md`).
 
+## PDF reporting (Stage 61)
 
-## Stage 62: Linux cgroup containment and signed lab gate
+Install dependencies, then `cybersec report pdf --output reports/client.pdf --profile technical`. Unicode TTF can be provided with `--font-path`. See `docs/STAGE_61_PDF_REPORTING.md`.
 
-This release adds a fail-closed cgroup v2 scanner execution candidate and
-an independently signed, per-attempt loopback-lab authorization gate.
-Read `docs/STAGE_62_OS_ENFORCED_CONTAINMENT.md` and
-`deployment/stage62/README.md` before attempting a host rollout.
-Production execution is **BLOCKED/NO-GO** without independent MAC/LSM,
-service-manager and writable delegation evidence. Legacy development APIs
-remain for backward compatibility, **not as production scanner admission**.
+## Stage 63 — Strict regression and worker cancellation (2.43.0)
 
+Scanner-worker SIGTERM/SIGINT now requests cooperative cancellation. Worker-owned Nuclei subprocess execution must use the POSIX process supervisor and stops on cancellation, lease loss or shutdown; interrupted external work is not automatically retried. See `docs/STAGE_63_STRICT_REGRESSION_AND_CANCELLATION.md` for warnings diagnostics, test evidence and Ubuntu Server validation requirements.
 
-### Stage 63 (2.43.0) — independent host MAC & recovery gate
-
-`python -m cybersec.stage63_host` performs a **read-only** host audit and exits 3 (`BLOCKED/NO-GO`). `cybersec.recovery_authority` reviews independently signed recovery receipts but intentionally cannot consume a hardware one-use permit. No active scanning or production admission is authorized by this stage. See `docs/STAGE_63_INDEPENDENT_LINUX_LAB_MAC.md`.
+Local Python regression tests do **not** launch ZAP, Nuclei or sqlmap. **Deployment remains BLOCKED / NO-GO** pending real Ubuntu systemd/cgroup and authorization checks.
