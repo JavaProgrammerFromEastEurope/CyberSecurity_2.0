@@ -1,0 +1,21 @@
+{
+  "focused": {
+    "exit": 0,
+    "result": "5 passed"
+  },
+  "compile": {
+    "exit": 0
+  },
+  "cli": {
+    "exit": 0
+  },
+  "full_initial": {
+    "exit": 3,
+    "result": "pytest plugin deprecation configuration INTERNALERROR"
+  },
+  "full_retry": {
+    "exit": 0,
+    "result": "282 passed, 1 PytestUnraisableExceptionWarning from sqlite3 ResourceWarning; strict clean warning-free status NOT achieved"
+  },
+  "external_scanners_started": false
+}

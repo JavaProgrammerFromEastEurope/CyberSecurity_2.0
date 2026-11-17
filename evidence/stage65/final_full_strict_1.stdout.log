@@ -1,0 +1,24 @@
+ssssssssssssssss........................................................ [ 19%]
+........................................................................ [ 39%]
+........................................................................ [ 59%]
+........................................................................ [ 79%]
+........................................................................ [ 99%]
+..                                                                       [100%]
+=========================== short test summary info ============================
+SKIPPED [1] tests/integration/test_stage63_ubuntu.py:44: explicit opt-in on Ubuntu Server required
+SKIPPED [1] tests/integration/test_stage63_ubuntu.py:76: explicit opt-in on Ubuntu Server required
+SKIPPED [1] tests/integration/test_stage64_ubuntu.py:26: Ubuntu Server 26.10 opt-in only; no external scanners
+SKIPPED [1] tests/integration/test_stage64_ubuntu.py:36: Ubuntu Server 26.10 opt-in only; no external scanners
+SKIPPED [1] tests/integration/test_stage64_ubuntu.py:56: Ubuntu Server 26.10 opt-in only; no external scanners
+SKIPPED [1] tests/integration/test_stage64_ubuntu.py:67: Ubuntu Server 26.10 opt-in only; no external scanners
+SKIPPED [1] tests/integration/test_stage64_ubuntu.py:74: Ubuntu Server 26.10 opt-in only; no external scanners
+SKIPPED [1] tests/integration/test_stage64_ubuntu.py:116: Ubuntu Server 26.10 opt-in only; no external scanners
+SKIPPED [1] tests/integration/test_stage65_ubuntu.py:43: Explicit Ubuntu 26.10 opt-in required
+SKIPPED [1] tests/integration/test_stage65_ubuntu.py:52: Explicit Ubuntu 26.10 opt-in required
+SKIPPED [1] tests/integration/test_stage65_ubuntu.py:60: Explicit Ubuntu 26.10 opt-in required
+SKIPPED [1] tests/integration/test_stage65_ubuntu.py:70: Explicit Ubuntu 26.10 opt-in required
+SKIPPED [1] tests/integration/test_stage65_ubuntu.py:82: Explicit Ubuntu 26.10 opt-in required
+SKIPPED [1] tests/integration/test_stage65_ubuntu.py:96: Explicit Ubuntu 26.10 opt-in required
+SKIPPED [1] tests/integration/test_stage65_ubuntu.py:113: Real PID1 SIGKILL/restart requires separate destructive-test opt-in
+SKIPPED [1] tests/integration/test_stage65_ubuntu.py:158: Kernel AppArmor denial probes require separate opt-in
+346 passed, 16 skipped in 53.50s

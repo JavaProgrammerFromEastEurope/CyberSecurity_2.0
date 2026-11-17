@@ -1,0 +1,27 @@
+usage: cybersec [-h]
+                {init,scanner-worker,evidence,target,job,finding,artifact,report,alert,api,remote} ...
+
+Authorized security assessment orchestrator — Stage 53 with tamper-evident
+revalidation history.
+
+positional arguments:
+  {init,scanner-worker,evidence,target,job,finding,artifact,report,alert,api,remote}
+    init                Initialize local database
+    scanner-worker      Run a dedicated durable scanner-job worker
+    evidence            Verify portable evidence artifacts offline without
+                        database access
+    target              Manage authorized assessment targets
+    job                 Manage scan jobs
+    finding             Manage normalized findings
+    artifact            Import, search, inspect, and replay stored scanner
+                        artifacts
+    report              Export project data
+    alert               Manage local alert policies, queue, and opt-in webhook
+                        delivery
+    api                 Serve the token-protected loopback HTTP API; does not
+                        run scanners
+    remote              Use the token-protected loopback API client; metadata
+                        operations only
+
+options:
+  -h, --help            show this help message and exit

@@ -1,10 +1,9 @@
-Stage 61: worker-owned Nuclei process supervision, cooperative cancellation, POSIX SIGTERM/SIGKILL escalation and fencing. See docs/STAGE_61_PROCESS_SUPERVISION.md.
 Stage 60: conservative scanner execution recovery policy. See docs/STAGE_60_EXECUTION_RECOVERY.md.
 Stage 59: atomic worker result commit with attempt fencing. See docs/STAGE_59_ATOMIC_RESULT_COMMIT.md.
 
 # Cyber Security Orchestrator 2.0
 
-**Current release: 2.42.0 — Stage 61**
+**Current release: 2.45.0 — Stage 65 (BLOCKED/NO-GO)**
 
 An authorized security assessment orchestrator with evidence provenance, offline cryptographic verification, trust-registry snapshots, and continuous trust monitoring. The project retains earlier stages and their tests.
 
@@ -86,18 +85,38 @@ Automated tests and CLI smoke checks do not by themselves establish production r
 
 Stage 57: repository-backed one-shot SQLmap candidate approval (`docs/STAGE_57_SQLMAP_APPROVAL.md`).
 
+## PDF reporting (Stage 61)
 
-## Stage 62: Linux cgroup containment and signed lab gate
+Install dependencies, then `cybersec report pdf --output reports/client.pdf --profile technical`. Unicode TTF can be provided with `--font-path`. See `docs/STAGE_61_PDF_REPORTING.md`.
 
-This release adds a fail-closed cgroup v2 scanner execution candidate and
-an independently signed, per-attempt loopback-lab authorization gate.
-Read `docs/STAGE_62_OS_ENFORCED_CONTAINMENT.md` and
-`deployment/stage62/README.md` before attempting a host rollout.
-Production execution is **BLOCKED/NO-GO** without independent MAC/LSM,
-service-manager and writable delegation evidence. Legacy development APIs
-remain for backward compatibility, **not as production scanner admission**.
+## Stage 63 — Strict regression and worker cancellation (2.43.0)
+
+Scanner-worker SIGTERM/SIGINT now requests cooperative cancellation. Worker-owned Nuclei subprocess execution must use the POSIX process supervisor and stops on cancellation, lease loss or shutdown; interrupted external work is not automatically retried. See `docs/STAGE_63_STRICT_REGRESSION_AND_CANCELLATION.md` for warnings diagnostics, test evidence and Ubuntu Server validation requirements.
+
+Local Python regression tests do **not** launch ZAP, Nuclei or sqlmap. **Deployment remains BLOCKED / NO-GO** pending real Ubuntu systemd/cgroup and authorization checks.
+
+## Stage 64 / 2.44.0 — Ubuntu 26.10 lifecycle and fail-closed admission candidate
+
+`cybersec host-preflight` performs a read-only compatibility audit. It always
+returns **3 / BLOCKED/NO-GO** in this release and never grants an execution
+permit. `CYBERSEC_EXECUTION_MODE=production` blocks built-in scanner adapters
+and worker/runner entrypoints; this environment gate is **not** a substitute
+for independently enforced AppArmor, systemd and cgroup restrictions against
+legacy same-UID invocation. The systemd unit in `deployment/stage64/` is
+review-only and intentionally non-operational. No external scanners run in the
+Stage 64 regression. See `docs/STAGE_64_UBUNTU_RUNTIME_AND_ADMISSION.md`.
 
 
-### Stage 63 (2.43.0) — independent host MAC & recovery gate
+## Stage 65 / v2.45.0 — Cross-UID isolation and durable recovery primitives
 
-`python -m cybersec.stage63_host` performs a **read-only** host audit and exits 3 (`BLOCKED/NO-GO`). `cybersec.recovery_authority` reviews independently signed recovery receipts but intentionally cannot consume a hardware one-use permit. No active scanning or production admission is authorized by this stage. See `docs/STAGE_63_INDEPENDENT_LINUX_LAB_MAC.md`.
+`cybersec host65-preflight` emits an explicit read-only **BLOCKED/NO-GO**
+assessment (exit 3). The new `cybersec.stage65` package provides Ed25519
+one-time signed attempt permits, independently witnessed SQLite consumption,
+a UID-authenticated Unix broker, cgroup v2 pre-exec trampoline and fail-closed
+SIGKILL recovery. Read `docs/STAGE_65_OS_ISOLATION_RECOVERY.md` and
+`deployment/stage65/APPARMOR_MAC_CONTRACT.md` before using any components.
+
+Existing PDF/HTML, API, SQLite application schema, documentation and evidence
+remain cumulative. The Ubuntu Server 26.10 AppArmor, systemd and independent
+root proof is **not** available here. Production scanner execution remains
+blocked, and no Ubuntu production readiness is claimed.

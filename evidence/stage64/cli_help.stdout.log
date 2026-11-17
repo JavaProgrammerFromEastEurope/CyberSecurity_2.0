@@ -1,0 +1,29 @@
+usage: cybersec [-h]
+                {init,host-preflight,scanner-worker,evidence,target,job,finding,artifact,report,alert,api,remote} ...
+
+Authorized security assessment orchestrator with evidence auditing and bounded
+scanner workers.
+
+positional arguments:
+  {init,host-preflight,scanner-worker,evidence,target,job,finding,artifact,report,alert,api,remote}
+    init                Initialize local database
+    host-preflight      Read-only Ubuntu Server 26.10 host compatibility and
+                        NO-GO admission audit
+    scanner-worker      Run a dedicated durable scanner-job worker
+    evidence            Verify portable evidence artifacts offline without
+                        database access
+    target              Manage authorized assessment targets
+    job                 Manage scan jobs
+    finding             Manage normalized findings
+    artifact            Import, search, inspect, and replay stored scanner
+                        artifacts
+    report              Export project data
+    alert               Manage local alert policies, queue, and opt-in webhook
+                        delivery
+    api                 Serve the token-protected loopback HTTP API; does not
+                        run scanners
+    remote              Use the token-protected loopback API client; metadata
+                        operations only
+
+options:
+  -h, --help            show this help message and exit
