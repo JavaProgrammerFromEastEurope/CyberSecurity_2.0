@@ -45,3 +45,11 @@ As of this evidence update, the default branch contains this sanitized status re
 - The lab-only probe services do not scan, issue permits, mutate witness CAS or publish results. `HostAdmission.check()` continues to deny production.
 
 This public report intentionally excludes raw host journals, private Ubuntu evidence archives, machine-specific diagnostics and secrets. **Publication of a report does not imply publication of the complete 762-file source ZIP or production acceptance.**
+
+## CFFI executable mapping follow-up — source hotfix (still NO-GO)
+
+Ubuntu runtime diagnostic captured **2026-11-18 18:20:18 UTC** (private original SHA-256 `25d8b7d891a733252cc29aeac8e23550381d5a8f44cb2d66f0d538f65ccea9e2`) confirms that the five installed policies have the previously added Rust `mr` permission and valid nine-file root-owned manifest (`verify` exit 0), but all five lab instances still fail to start. The import now fails on the *different* `_cffi_backend.cpython-314-aarch64-linux-gnu.so` native extension (executable mmap). The five failed services remain historical Ubuntu FAIL, not post-remediation PASS.
+
+**New cumulative package prepared locally, NOT yet pushed as source files:** `cyber_securuty_2.0_stage_70_cffi_mmap_hotfix.zip` with SHA-256 `ab28221525fc65b80b77115d4945d4a68db5a03b28a76b3ee35490439a2f6e0c`, 784 files; 762 previous files preserved, 520 historical evidence files byte-identical. Exact `mr` for the identified CPython 3.14/aarch64 CFFI extension is added to the five LAB profiles. The guarded updater recognizes only the five observed previous policy digests, checks root-owned runtime extension and requires fresh pinned approval. No automatic service restart or production admission bypass is included.
+
+**New offline strict cumulative regressions:** 3 runs of **649 PASS / 69 SKIPPED / 0 FAIL**, exit code 0, `ResourceWarning` and `DeprecationWarning` treated as errors. These do not establish Ubuntu kernel enforcement or actual successful service startup. Independent root, production service graph and complete Ubuntu opt-in acceptance still **BLOCKED/NO-GO**. Private Ubuntu journals and host-specific evidence are not published to this public repository.
