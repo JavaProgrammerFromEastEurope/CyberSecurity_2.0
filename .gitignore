@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Environments
+.venv/
+venv/
+env/
+
+# IDE / editor
+.vscode/
+.idea/
+.history/
+
+# Local application state and generated output
+.cybersec/
+reports/
+*.db
+*.sqlite
+*.sqlite3
+*.log
+
+# Secrets and local config
+.env
+.env.*
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build
+build/
+dist/
+*.egg-info/
+
+# Stage 21 runtime logs
+.cybersec-logs/
+*.jsonl.*

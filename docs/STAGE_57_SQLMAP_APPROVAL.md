@@ -1,0 +1,5 @@
+# Stage 57 — Repository-backed SQLmap confirmation approval
+
+A SQL injection finding must already exist in `normalized_findings`. The registered target must be authorized, the finding must be SQLi, and the query parameter must exist on an in-scope URL. `request_sqlmap_confirmation(finding_id, requested_by=...)` stores an immutable candidate snapshot. `approve_sqlmap_confirmation(id, approved_by=...)` requires a distinct reviewer. `execute_approved_confirmation(repository, id, adapter=...)` atomically consumes the one-shot approval, rechecks authorization and finding provenance, and invokes the bounded Stage56 adapter. Replays and concurrent claims are rejected. Execution failures are recorded.
+
+**Not production-ready:** Approval is a repository API, not authenticated RBAC. Caller identities are labels and not cryptographically verified. No automatic scanner-worker dispatch, process-group cancellation, redaction guarantees, external lab certification or authenticated approval UI. Do not expose the repository approval methods directly to untrusted clients. Stage55 worker cancellation/lease race remains open. No network scan is executed by tests.

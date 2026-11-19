@@ -1,0 +1,33 @@
+# Stage 62 REVIEW-ONLY proposal. DO NOT enable without independent LSM,
+# delegated cgroup and per-attempt lab authorization; this file is NOT proof.
+[Unit]
+Description=CyberSecurity 2.0 scanner worker (requires independent admission)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=exec
+User=cybersec-worker
+Group=cybersec-worker
+WorkingDirectory=/opt/cybersec
+Environment=CYBERSEC_EXECUTION_MODE=production
+ExecStart=/opt/cybersec/.venv/bin/cybersec scanner-worker --worker-id=systemd-worker --lease-seconds=60 --idle-seconds=2
+Restart=on-failure
+RestartSec=10s
+Delegate=yes
+KillMode=control-group
+SendSIGKILL=yes
+TimeoutStopSec=15s
+NoNewPrivileges=yes
+RestrictSUIDSGID=yes
+RestrictNamespaces=yes
+ProtectHome=yes
+ProtectSystem=strict
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+PrivateTmp=yes
+AppArmorProfile=cybersec-worker
+ReadWritePaths=/var/lib/cybersec
+
+[Install]
+WantedBy=multi-user.target
