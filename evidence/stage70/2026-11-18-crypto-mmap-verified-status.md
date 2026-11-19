@@ -142,3 +142,14 @@ New private Ubuntu 26.10 report `stage70_stacking_negative_probe_20261119T040403
 A separate **LAB-ONLY SO_PEERSEC self-socketpair observer** has been statically checked and packaged for the next on-host run. This is only a proposed diagnostic and is not evidence of cross-UID IPC acceptance or successful production admission.
 
 **BLOCKED/NO-GO preserved.** No new numbered Stage, source change, full ZIP GitHub push, or production acceptance is claimed.
+
+
+## November 19 04:17 UTC — SO_PEERCRED observed, SO_PEERSEC observer bug identified
+
+The supplied Ubuntu lab-only `stage70_so_peersec_observer_20261119T041708Z.txt` report (SHA-256 `94542d5a6a7333c6674cf5e7588ed5ad3e71357a1b19f8c1b467fd19bc63e33e`) verified the existing ten-file manifest and the five installed policy digests. It observed self-socketpair `SO_PEERCRED` (PID/UID/GID) for all five separate dedicated-role transient processes. **0/5 `SO_PEERSEC` observations are valid:** the diagnostic script requested a 4096-byte Python `socket.getsockopt` buffer, which CPython rejects with `OSError('getsockopt buflen out of range')` before any useful kernel peer-security read. This is a **diagnostic implementation defect**, not proof that Ubuntu/AppArmor lacks `SO_PEERSEC`.
+
+Reuploaded earlier post-upgrade and DAC/MAC-negative reports are SHA-identical to previous observations (respectively `7a30b2eceb5b738bac00effc301d70a14da970e7dc99d4b17ee052c968b8e793` and `2477e785114049056cb3d5d1429a266dc208926d9a278f4c0c8420967231d09f`) and add no new kernel result.
+
+A **new diagnostic-only candidate** `CyberSecurity_Stage70_CROSS_UID_PEERSEC_Probe_DOWNLOAD.zip` (SHA-256 `3c7f2c42df5e9756e542889968061bda5378afad6245b15e2c9126a8683a69b9`) uses `SO_PEERSEC` 1024-byte getsockopt and will attempt five self-socketpair observations plus real broker→worker cross-UID and broker→broker same-UID *two-process* observations using ephemeral abstract AF_UNIX streams. Shell/Python syntax, ZIP CRC/SHA-256 and unconfined local socket roundtrip passed, but **Ubuntu execution has NOT occurred**. Separate transient processes share the host network namespace solely for Linux abstract AF_UNIX sockets, while address families remain AF_UNIX-only with IP access denied. This differs from production `PrivateNetwork=yes`, and no production-like namespace gate is claimed.
+
+Current `peer_mac_label` and `exact_enforcing_mac` deliberately continue to reject unapproved stacked labels. No production IPC listener, privileged broker action, permit, root witness, ledger or full source-tree GitHub push has been performed. **BLOCKED/NO-GO** remains mandatory.
