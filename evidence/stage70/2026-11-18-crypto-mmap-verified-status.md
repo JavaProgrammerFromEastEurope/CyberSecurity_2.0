@@ -217,3 +217,20 @@ The strict exact-label contract still rejects `cybersec-stage70-ROLE//&unconfine
 Before distribution, the diagnostic shell script was corrected to write the output report `.sha256` with a **relative basename** rather than an absolute Ubuntu path, so it can be verified after downloading to macOS. This changes the *diagnostic candidate only*, not any previously verified Ubuntu evidence or production code.
 
 **Final candidate ZIP SHA-256:** `b3b6d72d4bdbc2107d40126008bacd3d34bb37ee08b68a2f9fe6a5f53b0d911e`. **Final embedded shell script SHA-256:** `b2b2d5359b535966ed1d67008a01245b8980d5e26a285ea724a40044285175d2`. The earlier provisional candidate hashes (`7b2257ec...` / `b4445396...`) are superseded and must not be used to verify the distributed ZIP. Final ZIP has 12 entries; Bash syntax, CRC, private report SHA-256 and ZIP SHA-256 validated locally. **Not executed on Ubuntu. Production BLOCKED/NO-GO.**
+
+
+## November 19 06:12 UTC — five live unit-boundary inventories verified
+
+The private Ubuntu 26.10 report `stage70_unit_boundary_probe_20261119T061215Z.txt` was hash-verified, SHA-256 `c36335a295bbd33e0701c00b2b952da851ed43ac68bc928b7223bf11ddb0a72d`. Four reuploaded older files (source DAC inspect/apply, negative IPC and unit audit) exactly match previously verified SHA-256 and add no independent rerun.
+
+The new report confirms all five effective systemd units are known, root-owned, static, loaded, with no drop-ins; `ExecStart` uses the pinned venv Python `-I -m cybersec.stage70.lab_service --role ROLE`. AppArmor role policies match previous exact SHA pins and are in enforcing mode. Each unit has `SupplementaryGroups=cybersec-stage70-ipc`; the shared IPC GID is 973 with exactly the five dedicated role service accounts. Each unit retains `PrivateNetwork=yes`, `NoNewPrivileges=yes`, `RestrictAddressFamilies=AF_UNIX`, `ProtectSystem=strict`, `RestrictNamespaces=yes`, `KillMode=control-group`, `SendSIGKILL=yes`, and `RuntimeDirectoryMode=0755`. Root-owned template `/etc/systemd/system/cybersec-stage70@.service` SHA-256: `3bfcd363c967de40b48ced161da46071c3008005cdb196a47a5b01003ac32850`.
+
+All five services **remain failed / MainPID=0 / start-limit-hit** from earlier attempts. Runtime directories and `/run/cybersec-stage70-ROLE/probe.sock` paths are absent; therefore **no pathname socket has been opened or authenticated in a permanent unit**. Prior six negative IPC admission denials used separate temporary abstract AF_UNIX sockets in a shared netns, which differs from the service's `PrivateNetwork=yes`. The exact-label MAC gate still refuses stacked `cybersec-stage70-ROLE//&unconfined (enforce)`; positive IPC, same-UID legacy OS confinement, independent monotonic root and SIGKILL recovery remain unproven.
+
+A separate **read-only, not run on Ubuntu** contract-audit candidate was packaged:
+- `CyberSecurity_Stage70_PATHNAME_IPC_CONTRACT_AUDIT.zip` SHA-256 `a2e9a3b1ada8bef887f22140df5337d52e4056666ce4ad75f8263cfa0d4aa4e8`.
+- `stage70_pathname_ipc_contract_audit.py` SHA-256 `1147f2b0fb2e26a4466cc86c74ae32e2e844d0541b0a416d7bb8280f5794a7e7`.
+- Pinned JSON SHA-256 `1ea24c0b2135d5169592a7785828d56f92983bfde272bdf1b3abf4350a649e8c`.
+- 7-entry ZIP CRC PASS. Offline exact cumulative ZIP graph PASS for five role-specific permitted pathname edges and 72 SHA-pinned Python source files. Four offline test cases PASS (good baseline accepted, tampered policy rejected, truncated archive rejected, missing archive rejected). **No on-host real pathname IPC or full new strict regression was run or claimed.**
+
+This candidate only inventories policy-to-source-to-unit contracts; it cannot override exact MAC admission. **BLOCKED/NO-GO preserved**. Original private raw logs and full source ZIP were not published to GitHub.
