@@ -73,3 +73,22 @@ A new **candidate only** cumulative Stage 70 v2.50.0 patch changes own-process l
 - No post-remediation service startup, cross-UID SO_PEERCRED/SO_PEERSEC, kernel DENIED, SIGKILL/recovery, independently protected monotonic root or production admission GO is claimed.
 
 **BLOCKED/NO-GO remains mandatory.** This publicly available note excludes raw Ubuntu logs and does not signify that the 836-file source archive was pushed to GitHub.
+
+
+## November 19 probe v2: exact observed stacking and procfs EACCES
+
+- Ubuntu 26.10 capture: **2026-11-19 03:18:31–03:19:12 UTC**.
+- Five independently UID-bound transient processes, each root-observed in its systemd cgroup; exact kernel labels were **`cybersec-stage70-ROLE//&unconfined (enforce)`**, not required `cybersec-stage70-ROLE (enforce)`.
+- Each of five roles received `errno=13 EACCES` reading its own `/proc/self/attr/current`, numeric `/proc/<pid>/attr/current`, `/proc/self/status`, and `/proc/self/cgroup`. This is a **FAIL**, even though the diagnostic runner returned exit 0.
+- Named profiles appear in `aa-status` enforcing; installed per-role digests match the **previous nine-file** version, not the newer ten-file candidate.
+- Root report SHA-256: `c1b809b16192e9963a05181776862098dc7b4db02ae186a01d781895e600ae7f`. Earlier repeated snapshot SHA-256: `07dec69ecc196742d77feb038ecac0a08f32b5e38e549ecc25189d1e49530ab1`.
+
+A new **candidate only, not yet deployed to Ubuntu or pushed as source tree** adds owner-read permissions for numeric `/proc/<pid>/status` and `/proc/<pid>/cgroup`, complementing the previous owner-read `attr/current` rule. The exact-label checker deliberately continues to **reject** stacked `//&unconfined` labels. The guarded installer recognizes two complete known prior policy sets; mixed/unknown policy sets fail closed. Neither kernel denies nor production admission are claimed.
+
+- Cumulative package: `cyber_securuty_2.0_stage_70_procfs_stacked_label_hotfix.zip`.
+- SHA-256: `7f7a1d9feb5a05b6582eec23e37e08433d7cef7fd8f6d77ee87fbe285883f39d`.
+- **868 files**, all 836 previous retained; **592 historical evidence entries byte-identical**.
+- **Three completed full strict local runs:** 682 PASS / 69 SKIPPED / 0 FAIL, exit 0 each; ResourceWarning and DeprecationWarning as errors. Original missing-PYTHONPATH collection failure (exit 2) remains in the private package.
+- On-host AppArmor parser 6.0 ABI 5.0 confirmation, five running service identities, procfs reads after upgrade, negative MAC logs, cross-UID/same-UID IPC and independent monotonic root are all **UNPROVEN**.
+
+**Production remains BLOCKED/NO-GO.** Raw Ubuntu reports and full private cumulative evidence must not be pushed publicly. Source code changes in the local cumulative ZIP are **not yet published to GitHub**.
