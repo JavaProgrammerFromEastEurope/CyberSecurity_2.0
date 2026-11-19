@@ -53,3 +53,23 @@ Ubuntu runtime diagnostic captured **2026-11-18 18:20:18 UTC** (private original
 **New cumulative package prepared locally, NOT yet pushed as source files:** `cyber_securuty_2.0_stage_70_cffi_mmap_hotfix.zip` with SHA-256 `ab28221525fc65b80b77115d4945d4a68db5a03b28a76b3ee35490439a2f6e0c`, 784 files; 762 previous files preserved, 520 historical evidence files byte-identical. Exact `mr` for the identified CPython 3.14/aarch64 CFFI extension is added to the five LAB profiles. The guarded updater recognizes only the five observed previous policy digests, checks root-owned runtime extension and requires fresh pinned approval. No automatic service restart or production admission bypass is included.
 
 **New offline strict cumulative regressions:** 3 runs of **649 PASS / 69 SKIPPED / 0 FAIL**, exit code 0, `ResourceWarning` and `DeprecationWarning` treated as errors. These do not establish Ubuntu kernel enforcement or actual successful service startup. Independent root, production service graph and complete Ubuntu opt-in acceptance still **BLOCKED/NO-GO**. Private Ubuntu journals and host-specific evidence are not published to this public repository.
+
+
+## November 19: five LAB services fail closed at exact AppArmor self-label check
+
+Independent Ubuntu evidence captured 2026-11-19 02:20 UTC shows **five failed laboratory services** (`MainPID=0`, no AF_UNIX sockets); fresh service logs now report `Exact enforce-mode AppArmor profile missing` (exit 3) rather than the previous CFFI shared-object mapping error. The deployed policies include the narrow Rust and CFFI `mr` rules. The observed nine-file lab manifest verifies (exit 0). **No actual running PID MAC label or successful kernel negative tests were captured.** An empty sampled `kernel_mac_denied.txt` is not evidence of enforcement success.
+
+Private uploaded evidence SHA-256:
+- Runtime text: `e0bab55e110de281beefe54c5902773393196583dd6aeaed0060e03572cda408`
+- Lab ZIP: `b7ea8ec9234a378a70050e9d6a1adf704d1868df21e411f957c65ef89bf803c8`
+
+A new **candidate only** cumulative Stage 70 v2.50.0 patch changes own-process label observation to `/proc/self/attr/current`, with a five-policy owner-only read exception for numeric procfs `attr/current`, while keeping exact `(enforce)` checks and denial on unreadable/incorrect labels. The root-owned review manifest increases to ten pinned files, including the shared `stage65/host.py` kernel MAC helper. Unknown or mixed existing policies remain refused.
+
+- Cumulative package: `cyber_securuty_2.0_stage_70_mac_label_hotfix.zip`
+- SHA-256: `299afaa087b0b10e14d349e527287e351f2716eb4b8b5a5b6fc418201ef03227`
+- ZIP integrity: 836 files, all 784 previous files retained; 773 previously existing files are byte-identical; private historical evidence preserved.
+- Three **final** full offline strict regressions: **664 PASS / 69 SKIPPED / 0 FAIL, exit 0** each; warning filters are errors. An intermediate failing expectation for nine instead of ten pinned files is retained in private regression evidence.
+- The actual cause of the exact MAC-label failure is still unconfirmed until a confined live probe returns the kernel label/read error; candidate profiles have not been proven loaded by Ubuntu AppArmor 6.0 ABI 5.0.
+- No post-remediation service startup, cross-UID SO_PEERCRED/SO_PEERSEC, kernel DENIED, SIGKILL/recovery, independently protected monotonic root or production admission GO is claimed.
+
+**BLOCKED/NO-GO remains mandatory.** This publicly available note excludes raw Ubuntu logs and does not signify that the 836-file source archive was pushed to GitHub.
