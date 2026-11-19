@@ -126,3 +126,19 @@ Actual new Ubuntu 26.10 fresh probe (uploaded report SHA-256 `7a30b2eceb5b738bac
 A separate lab-only probe for independently checking the `kernel.apparmor_restrict_unprivileged_unconfined` setting and matched same-UID DAC-control versus AppArmor-profiled read denial was locally packaged. It is a *diagnostic candidate*, not executed on Ubuntu; it makes no permanent host changes and must not be treated as kernel test PASS until new private results are received.
 
 **BLOCKED/NO-GO remains in force.** Full source ZIP still not verified as published to GitHub.
+
+
+## November 19 04:04 UTC — five matched live AppArmor negative checks PASS
+
+New private Ubuntu 26.10 report `stage70_stacking_negative_probe_20261119T040403Z.txt`, independently SHA-256 checked: `2477e785114049056cb3d5d1429a266dc208926d9a278f4c0c8420967231d09f`. The reuploaded 03:48 UTC post-upgrade procfs report is byte-identical to the already reviewed earlier report (SHA-256 `7a30b2eceb5b738bac00effc301d70a14da970e7dc99d4b17ee052c968b8e793`).
+
+- Ubuntu settings are `kernel.apparmor_restrict_unprivileged_unconfined=1` and `kernel.apparmor_restrict_unprivileged_userns=1`. Stacked labels may therefore be expected; no sysctl changes are proposed.
+- The ten-pinned-file deployment manifest verified (exit 0); all five installed/source policy hashes match approved policy and file modes are root:root 0644; target file `/etc/hostname` is root-owned mode 0644, parent `/etc` mode 0755.
+- For each dedicated UID (broker 999; worker 998; attester 993; witness 992; publisher 991), a matched ephemeral systemd-run control **without** role AppArmorProfile successfully opened `/etc/hostname` (`OPEN_OK`), while the same UID **with** that AppArmorProfile received `EACCES (errno 13)`. All ten transient runners exited 0. Five pairs reported `NEGATIVE_MAC_DAC_CONTROL_PASS`.
+- Kernel labels were `unconfined` for control processes and `cybersec-stage70-ROLE//&unconfined (enforce)` for role processes. This establishes one bounded file-open confinement effect under real role profiles; it does **not** certify arbitrary same-UID legacy entrypoint isolation, cross-UID or same-UID IPC/peer-security, or a production service graph.
+- The report's recent kernel audit section was empty: an explicit `apparmor="DENIED"` journal record is **not** claimed. Direct syscall observations still support the matched negative result.
+- No persistent services were started. The strict kernel exact-label check still rejects stacked labels; any relaxation requires separate contract/security analysis and end-to-end proof. Independent monotonic root and durable recovery remain unverified.
+
+A separate **LAB-ONLY SO_PEERSEC self-socketpair observer** has been statically checked and packaged for the next on-host run. This is only a proposed diagnostic and is not evidence of cross-UID IPC acceptance or successful production admission.
+
+**BLOCKED/NO-GO preserved.** No new numbered Stage, source change, full ZIP GitHub push, or production acceptance is claimed.
