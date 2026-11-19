@@ -92,3 +92,23 @@ A new **candidate only, not yet deployed to Ubuntu or pushed as source tree** ad
 - On-host AppArmor parser 6.0 ABI 5.0 confirmation, five running service identities, procfs reads after upgrade, negative MAC logs, cross-UID/same-UID IPC and independent monotonic root are all **UNPROVEN**.
 
 **Production remains BLOCKED/NO-GO.** Raw Ubuntu reports and full private cumulative evidence must not be pushed publicly. Source code changes in the local cumulative ZIP are **not yet published to GitHub**.
+
+
+## November 19 03:38 UTC — post-upgrade manifest verified; post-upgrade kernel label not retested
+
+Two newly supplied file pairs have matching SHA-256:
+- `stage70_procfs_post_upgrade.txt`: `a46575b3b435362b24e4e4837fe080e57305141dddd06bfc352cb5d1aadb91ba`.
+- Reuploaded `stage70_exact_mac_probe_v2.txt`: `c1b809b16192e9963a05181776862098dc7b4db02ae186a01d781895e600ae7f`, identical to the prior 03:18–03:19 UTC observation.
+
+The top-level report captured **2026-11-19 03:38 UTC** confirms an installed **10-pinned-file manifest** with `LAB_MANIFEST_VERIFIED_NOT_ATTESTED`, and all five installed AppArmor policy SHA-256 digests exactly match the current 868-file cumulative procfs candidate:
+- broker `3fbd378f1f9c26d5df2ed06707f2d5962b10866f3ce485a1ef28f152c171f77c`
+- worker `d2f16d78a09308fea3dcaa698940d68cb507d8677e6bf57900dd823fb2836ac6`
+- attester `9aa4146e4c649dfb23710cfe7268492904e68886708783ab16ea748cf085e583`
+- witness `25bcadacbd169d3ebb45acbe96ae210ec926a6603eae98f0f39f40a43e4edcda`
+- publisher `a531b11a2d3135f22c59eb56353199e967329c36b1d1f604d53a139987016d37`
+
+All five persistent lab systemd units still report `failed`, `MainPID=0`, `start-limit-hit` in that snapshot; **no new restarts were attempted**. The embedded **old 03:18 UTC probe results were not rerun after 03:38 UTC**, so both positive procfs permissions and kernel labeling **remain unverified after upgrade**. Previously observed `//&unconfined (enforce)` remains disallowed; no reason to claim it vanished or persisted after upgrade.
+
+A separate **diagnostic-only, timestamped, fail-closed** shell probe was prepared for the next real Ubuntu capture. It preflights the five exact policy SHA-256 hashes, root ownership/mode, loaded enforcing policy names and ten-file manifest. It does not modify persistent services or host policies. No production GO and no new numbered Stage.
+
+**BLOCKED/NO-GO remains mandatory** until real post-upgrade live kernel observations and negative host tests are supplied; private raw evidence stays off public GitHub.
