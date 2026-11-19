@@ -112,3 +112,17 @@ All five persistent lab systemd units still report `failed`, `MainPID=0`, `start
 A separate **diagnostic-only, timestamped, fail-closed** shell probe was prepared for the next real Ubuntu capture. It preflights the five exact policy SHA-256 hashes, root ownership/mode, loaded enforcing policy names and ten-file manifest. It does not modify persistent services or host policies. No production GO and no new numbered Stage.
 
 **BLOCKED/NO-GO remains mandatory** until real post-upgrade live kernel observations and negative host tests are supplied; private raw evidence stays off public GitHub.
+
+
+## November 19 03:48:55–03:49:47 UTC — fresh post-upgrade procfs kernel evidence
+
+Actual new Ubuntu 26.10 fresh probe (uploaded report SHA-256 `7a30b2eceb5b738bac00effc301d70a14da970e7dc99d4b17ee052c968b8e793`) independently confirmed:
+- Preflight 10 pinned files manifest verified with exit 0; five exact installed and source AppArmor profile hashes match; all five named role profiles are kernel-loaded in enforce mode, root-owned, 0644.
+- Five transient processes under separate real/effective UID 999 / 998 / 993 / 992 / 991, each with `NoNewPrivs:1` and independent systemd cgroup. Root independently observed actual process labels.
+- **New positive result:** every role now successfully reads `/proc/self/attr/current`, `/proc/<pid>/attr/current`, `/proc/self/status` and `/proc/self/cgroup`. The previously observed procfs EACCES issue was resolved by the installed ten-file candidate.
+- **Remaining blocker:** all five labels are `cybersec-stage70-ROLE//&unconfined (enforce)`, not required exact `cybersec-stage70-ROLE (enforce)`; no policy admission change or substitution is approved. Probe runner exit 0 is only diagnostic completion, not security acceptance.
+- The fresh report does **not** prove permanent services running or completed negative AppArmor denials, peer-security IPC, or production admission.
+
+A separate lab-only probe for independently checking the `kernel.apparmor_restrict_unprivileged_unconfined` setting and matched same-UID DAC-control versus AppArmor-profiled read denial was locally packaged. It is a *diagnostic candidate*, not executed on Ubuntu; it makes no permanent host changes and must not be treated as kernel test PASS until new private results are received.
+
+**BLOCKED/NO-GO remains in force.** Full source ZIP still not verified as published to GitHub.
