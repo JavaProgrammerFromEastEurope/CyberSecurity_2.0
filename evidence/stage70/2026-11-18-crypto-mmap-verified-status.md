@@ -210,3 +210,10 @@ A new locally prepared **read-only unit-boundary candidate** `CyberSecurity_Stag
 The strict exact-label contract still rejects `cybersec-stage70-ROLE//&unconfined (enforce)`. The prior six negative denials used transient abstract AF_UNIX sockets in a shared network namespace, whereas permanent services have `PrivateNetwork=yes` and use pathname sockets; production-like connectivity and any positive admission are still unproven. Same-UID legacy fencing, independent monotonic root and crash/SIGKILL recovery remain unproven.
 
 **Production BLOCKED/NO-GO retained.** Neither raw VM evidence nor the private/source ZIP was published on GitHub; this update is sanitized evidence metadata only.
+
+
+### Correction to locally packaged read-only unit-boundary candidate
+
+Before distribution, the diagnostic shell script was corrected to write the output report `.sha256` with a **relative basename** rather than an absolute Ubuntu path, so it can be verified after downloading to macOS. This changes the *diagnostic candidate only*, not any previously verified Ubuntu evidence or production code.
+
+**Final candidate ZIP SHA-256:** `b3b6d72d4bdbc2107d40126008bacd3d34bb37ee08b68a2f9fe6a5f53b0d911e`. **Final embedded shell script SHA-256:** `b2b2d5359b535966ed1d67008a01245b8980d5e26a285ea724a40044285175d2`. The earlier provisional candidate hashes (`7b2257ec...` / `b4445396...`) are superseded and must not be used to verify the distributed ZIP. Final ZIP has 12 entries; Bash syntax, CRC, private report SHA-256 and ZIP SHA-256 validated locally. **Not executed on Ubuntu. Production BLOCKED/NO-GO.**
