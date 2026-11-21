@@ -1,0 +1,101 @@
+[
+  {
+    "name": "full_strict_1",
+    "command": [
+      "/opt/pyvenv/bin/python",
+      "-W",
+      "error::ResourceWarning",
+      "-W",
+      "error::DeprecationWarning",
+      "-m",
+      "pytest",
+      "-q",
+      "-ra",
+      "--tb=short",
+      "tests"
+    ],
+    "exit_code": 1,
+    "seconds": 58.451,
+    "timed_out": false,
+    "status": "FAIL",
+    "stdout_sha256": "c2aad3e36287c41d42822013b57db263fd3b555734c5bfd57339af58f1a42404",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout_tail": [
+      "SKIPPED [1] tests/integration/test_stage65_ubuntu.py:158: Kernel AppArmor denial probes require separate opt-in",
+      "FAILED tests/test_stage64_ubuntu_runtime.py::test_release_version_consistent_with_package_metadata - AssertionError: assert '2.45.0' == '2.44.0'",
+      "  ",
+      "  - 2.44.0",
+      "  ?    ^",
+      "  + 2.45.0",
+      "  ?    ^",
+      "1 failed, 345 passed, 16 skipped in 56.04s"
+    ],
+    "stderr_tail": []
+  },
+  {
+    "name": "full_strict_2",
+    "command": [
+      "/opt/pyvenv/bin/python",
+      "-W",
+      "error::ResourceWarning",
+      "-W",
+      "error::DeprecationWarning",
+      "-m",
+      "pytest",
+      "-q",
+      "-ra",
+      "--tb=short",
+      "tests"
+    ],
+    "exit_code": 1,
+    "seconds": 65.428,
+    "timed_out": false,
+    "status": "FAIL",
+    "stdout_sha256": "113365fd9347aa91b563b8061d48fcbcdcb702d83390d29a1fe4e780a7064afa",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout_tail": [
+      "SKIPPED [1] tests/integration/test_stage65_ubuntu.py:158: Kernel AppArmor denial probes require separate opt-in",
+      "FAILED tests/test_stage64_ubuntu_runtime.py::test_release_version_consistent_with_package_metadata - AssertionError: assert '2.45.0' == '2.44.0'",
+      "  ",
+      "  - 2.44.0",
+      "  ?    ^",
+      "  + 2.45.0",
+      "  ?    ^",
+      "1 failed, 345 passed, 16 skipped in 63.13s (0:01:03)"
+    ],
+    "stderr_tail": []
+  },
+  {
+    "name": "full_strict_3",
+    "command": [
+      "/opt/pyvenv/bin/python",
+      "-W",
+      "error::ResourceWarning",
+      "-W",
+      "error::DeprecationWarning",
+      "-m",
+      "pytest",
+      "-q",
+      "-ra",
+      "--tb=short",
+      "tests"
+    ],
+    "exit_code": 1,
+    "seconds": 59.644,
+    "timed_out": false,
+    "status": "FAIL",
+    "stdout_sha256": "4f3c87b839cdf49fd0ee9dc278ab175e546f81812f68cab969cd0f9bbd846b42",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout_tail": [
+      "SKIPPED [1] tests/integration/test_stage65_ubuntu.py:158: Kernel AppArmor denial probes require separate opt-in",
+      "FAILED tests/test_stage64_ubuntu_runtime.py::test_release_version_consistent_with_package_metadata - AssertionError: assert '2.45.0' == '2.44.0'",
+      "  ",
+      "  - 2.44.0",
+      "  ?    ^",
+      "  + 2.45.0",
+      "  ?    ^",
+      "1 failed, 345 passed, 16 skipped in 57.45s"
+    ],
+    "stderr_tail": []
+  }
+]

@@ -1,0 +1,38 @@
+[
+  {
+    "name": "compileall",
+    "code": 0,
+    "expected_code": 0,
+    "status": "PASS",
+    "seconds": 0.832,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "cli_help",
+    "code": 0,
+    "expected_code": 0,
+    "status": "PASS",
+    "seconds": 0.703,
+    "stdout_sha256": "537ecae3f58e3ec84f01b332f1684ba22c0088c1afd3c16e8c89cf6906de59be",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "stage64_host_preflight",
+    "code": 3,
+    "expected_code": 3,
+    "status": "PASS",
+    "seconds": 0.748,
+    "stdout_sha256": "43c1665c438753283d889296f19379ab5a3c5719121a0af49c6698347aa39669",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "stage65_host_preflight",
+    "code": 3,
+    "expected_code": 3,
+    "status": "PASS",
+    "seconds": 0.776,
+    "stdout_sha256": "ff525be7dc1cdabb38f2a9011068f13b06b3cc809cd1c478407f893dc7d7d760",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+]

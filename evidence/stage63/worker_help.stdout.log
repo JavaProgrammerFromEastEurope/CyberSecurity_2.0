@@ -1,0 +1,15 @@
+usage: cybersec scanner-worker [-h] --worker-id WORKER_ID
+                               [--lease-seconds LEASE_SECONDS]
+                               [--idle-seconds IDLE_SECONDS]
+                               [--max-jobs MAX_JOBS]
+                               [--max-attempts MAX_ATTEMPTS]
+
+options:
+  -h, --help            show this help message and exit
+  --worker-id WORKER_ID
+                        Unique stable worker identifier
+  --lease-seconds LEASE_SECONDS
+  --idle-seconds IDLE_SECONDS
+  --max-jobs MAX_JOBS   Stop after this many claimed jobs; 0 runs until
+                        interrupted
+  --max-attempts MAX_ATTEMPTS

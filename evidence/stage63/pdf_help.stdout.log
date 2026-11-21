@@ -1,0 +1,23 @@
+usage: cybersec report pdf [-h] [--output OUTPUT] [--target-id TARGET_ID]
+                           [--job-id JOB_ID]
+                           [--severity {Critical,High,Medium,Low,Info}]
+                           [--priority {P1,P2,P3,P4}]
+                           [--profile {technical,executive}]
+                           [--project-name PROJECT_NAME]
+                           [--assessment-start ASSESSMENT_START]
+                           [--assessment-end ASSESSMENT_END]
+                           [--font-path FONT_PATH]
+
+options:
+  -h, --help            show this help message and exit
+  --output OUTPUT
+  --target-id TARGET_ID
+  --job-id JOB_ID
+  --severity {Critical,High,Medium,Low,Info}
+  --priority {P1,P2,P3,P4}
+  --profile {technical,executive}
+  --project-name PROJECT_NAME
+  --assessment-start ASSESSMENT_START
+  --assessment-end ASSESSMENT_END
+  --font-path FONT_PATH
+                        Local Unicode TrueType font; no download

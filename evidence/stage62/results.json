@@ -1,0 +1,23 @@
+[
+  {
+    "check": "strict_full_pytest",
+    "exit_code": 124,
+    "pass": false,
+    "timeout": true,
+    "elapsed_seconds": 15.007
+  },
+  {
+    "check": "compileall",
+    "exit_code": 0,
+    "pass": true,
+    "timeout": false,
+    "elapsed_seconds": 0.771
+  },
+  {
+    "check": "cli_help",
+    "exit_code": 0,
+    "pass": true,
+    "timeout": false,
+    "elapsed_seconds": 0.671
+  }
+]

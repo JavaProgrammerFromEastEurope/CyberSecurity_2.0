@@ -1,0 +1,13 @@
+ssssss.................................................................. [ 22%]
+........................................................................ [ 45%]
+........................................................................ [ 68%]
+........................................................................ [ 91%]
+..........................                                               [100%]
+=========================== short test summary info ============================
+SKIPPED [1] tests/integration/test_stage63_ubuntu.py:44: explicit opt-in on Ubuntu Server required
+SKIPPED [1] tests/integration/test_stage63_ubuntu.py:76: explicit opt-in on Ubuntu Server required
+SKIPPED [1] tests/integration/test_stage64_ubuntu.py:26: Ubuntu Server 26.10 opt-in only; no external scanners
+SKIPPED [1] tests/integration/test_stage64_ubuntu.py:36: Ubuntu Server 26.10 opt-in only; no external scanners
+SKIPPED [1] tests/integration/test_stage64_ubuntu.py:56: Ubuntu Server 26.10 opt-in only; no external scanners
+SKIPPED [1] tests/integration/test_stage64_ubuntu.py:67: Ubuntu Server 26.10 opt-in only; no external scanners
+308 passed, 6 skipped in 49.95s

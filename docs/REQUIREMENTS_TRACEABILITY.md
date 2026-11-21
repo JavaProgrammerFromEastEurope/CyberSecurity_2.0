@@ -74,17 +74,35 @@ A release must not be called customer-ready until all of the following are evide
 | Running-job cancellation | Partial | Cancellation request is persisted; universal immediate process interruption is not supported by the synchronous adapter contract. |
 | Exactly-once scanner execution | Missing / not guaranteed | A crash after external scanner side effects can cause a retry. |
 
-## Stage 61 additional traceability (v2.41.0)
 
-| Requirement | Status | Evidence | Remaining work |
-| --- | --- | --- | --- |
-| Worker Nuclei process interruption | Partial (local POSIX) | `process_supervision.py`; `test_stage61_process_supervision.py` | cgroup/LSM isolation, systemd E2E and scanner binary integration |
-| SIGTERM/SIGINT scanner-worker shutdown | Implemented in CLI, locally tested | `cli.py`, `scan_worker.py`, Stage 61 tests | host service-manager restart and abrupt SIGKILL verification |
-| Lease cancellation/attempt fencing | Implemented for worker-owned jobs | `repository.py`, `runner.py`, Stage 58–61 tests | cross-process and service-manager end-to-end |
-| ZAP passive cancellation | Partial | ZAP adapter checks cancellation, Stage 61 tests | independent ZAP daemon stop/teardown proof; do not assume instant cancellation |
-| Customer deployment | Not externally verified | no real scanner/lab/OS containment evidence | preserve NO-GO |
+## Stage 63 update
+
+| Requirement | Stage 63 status | Remaining gap |
+|---|---|---|
+| Worker cancellation propagates into subprocess | Implemented for local POSIX supervised child-process adapters | ZAP HTTP calls and untrusted/custom adapters need separate cooperative controls |
+| SIGTERM/SIGKILL cleanup on timeout and cancellation | Implemented for POSIX process groups, fixture-tested | Not a cgroup/systemd process-tree guarantee |
+| SQLite `ResourceWarning` / `DeprecationWarning` closure | Full strict Python regression performed; explicit SQLite connection-close regression tests added | Prior host's timeout not reproduced, no unsupported root cause claimed |
+| External job fail-closed recovery | Expired lease and interrupted external work cannot automatically retry | External process stop and operator identity not independently verified |
+| Ubuntu Server and production readiness | BLOCKED / NO-GO | Gated Ubuntu integration, OS-MAC confinement, service manager, cross-UID and authorized scanner lab tests |
+
+## Stage 64 / v2.44.0 update
+
+| Requirement | Current evidence | Residual gap |
+|---|---|---|
+| Ubuntu 26.10 Python/OpenSSL/runtime compatibility | Read-only checks in `stage64_runtime.py` and safe fixtures | Actual Ubuntu 26.10 Python 3.14/OpenSSL 4 execution untested |
+| systemd/cgroup independent lifecycle | `deployment/stage64/*.candidate`, kill-mode contract | Not installed/running; no cross-UID, double-fork or restart kernel evidence |
+| Production admission | `production_admission.py` blocks built-in direct/worker paths | OS MAC legacy same-UID bypass, signed independent per-attempt permission absent |
+| PID reuse and cgroup observations | `process_identity.py` and tests | Does not replace pidfd or atomic kernel kill authority |
+| Legacy compatibility | No changed DB schema, API endpoints, PDF export signatures | Full strict regressions run separately, not Ubuntu validation |
+| TЗ Controller/Workers/Reporter | Existing code retained | Real scanner workflow/correlation production acceptance in Stages 67–70 |
+| Client readiness | BLOCKED / NO-GO | Complete Ubuntu host tests and independent negative MAC audit |
 
 
-## Stage 63 — read-only independent Linux lab and MAC admission
+## Stage 65 / v2.45.0 — new isolation and durable witness traceability
 
-C63-01/C63-02: host audit and four-role service/PID/UID checks implemented; independent host evidence unavailable (NO-GO). C63-03: same-UID OS-MAC and cgroup migration deny requires real LSM policy enforcement (BLOCKED). C63-04: local signal tests PASS; cross-cgroup detached descendant E2E blocked. C63-05: existing signed loopback permit review, no real owner approval. C63-06: Ed25519 recovery receipt verifier, external monotonic CAS not available; recovery admission always denied. C63-07/C63-08: production scanner remains disabled without independent admission, full strict regression results in evidence.
+See [`STAGE_65_OS_ISOLATION_RECOVERY.md`](STAGE_65_OS_ISOLATION_RECOVERY.md)
+for the S65-REQ-01..08 evidence and acceptance matrix. The permit verifier,
+SQLite witness CAS/recovery, kernel pre-exec implementation and opt-in tests
+are **implemented**. Production OS-enforced MAC/LSM isolation, same-UID legacy
+blocking, independent monotonic anti-rollback root, multi-service systemd
+restart and real Ubuntu Server 26.10 acceptance remain **NOT VERIFIED / NO-GO**.

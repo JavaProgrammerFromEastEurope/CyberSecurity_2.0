@@ -1,0 +1,10 @@
+{
+  "executables": {
+    "zap.sh": null,
+    "zaproxy": null,
+    "nuclei": null,
+    "sqlmap": null
+  },
+  "external_scanner_invocations": 0,
+  "note": "Full regression invokes Python test suite only; external executables are not called"
+}

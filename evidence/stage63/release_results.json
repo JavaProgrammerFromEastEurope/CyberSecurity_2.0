@@ -1,0 +1,148 @@
+{
+  "baseline_archive": "cyber_securuty_2.0_stage_62.zip",
+  "baseline_archive_sha256": "3b9303b18dd80a7292e1c3ea8dfea97f9df48a467d6545440c7f5cc7a9ee2992",
+  "checks": [
+    {
+      "check": "baseline",
+      "classification": "PASS",
+      "exit_code": 0,
+      "failed": 0,
+      "passed": 287,
+      "skipped": 0,
+      "stderr": "evidence/stage63/baseline.stderr.log",
+      "stdout": "evidence/stage63/baseline.stdout.log"
+    },
+    {
+      "check": "stage63_initial",
+      "classification": "FAIL (retained initial fixture race)",
+      "exit_code": 1,
+      "failed": 2,
+      "passed": 19,
+      "skipped": 0,
+      "stderr": "evidence/stage63/stage63_initial.stderr.log",
+      "stdout": "evidence/stage63/stage63_initial.stdout.log"
+    },
+    {
+      "check": "stage63_focus",
+      "classification": "PASS",
+      "exit_code": 0,
+      "failed": 0,
+      "passed": 21,
+      "skipped": 0,
+      "stderr": "evidence/stage63/stage63_focus.stderr.log",
+      "stdout": "evidence/stage63/stage63_focus.stdout.log"
+    },
+    {
+      "check": "full_strict_1",
+      "classification": "PASS",
+      "exit_code": 0,
+      "failed": 0,
+      "passed": 293,
+      "skipped": 0,
+      "stderr": "evidence/stage63/full_strict_1.stderr.log",
+      "stdout": "evidence/stage63/full_strict_1.stdout.log"
+    },
+    {
+      "check": "full_strict_2",
+      "classification": "PASS",
+      "exit_code": 0,
+      "failed": 0,
+      "passed": 295,
+      "skipped": 2,
+      "stderr": "evidence/stage63/full_strict_2.stderr.log",
+      "stdout": "evidence/stage63/full_strict_2.stdout.log"
+    },
+    {
+      "check": "full_strict_3",
+      "classification": "PASS",
+      "exit_code": 0,
+      "failed": 0,
+      "passed": 296,
+      "skipped": 2,
+      "stderr": "evidence/stage63/full_strict_3.stderr.log",
+      "stdout": "evidence/stage63/full_strict_3.stdout.log"
+    },
+    {
+      "check": "full_strict_final",
+      "classification": "PASS",
+      "exit_code": 0,
+      "failed": 0,
+      "passed": 297,
+      "skipped": 2,
+      "stderr": "evidence/stage63/full_strict_final.stderr.log",
+      "stdout": "evidence/stage63/full_strict_final.stdout.log"
+    },
+    {
+      "check": "new_smoke",
+      "classification": "PASS",
+      "exit_code": 0,
+      "failed": 0,
+      "passed": 9,
+      "skipped": 0,
+      "stderr": "evidence/stage63/new_smoke.stderr.log",
+      "stdout": "evidence/stage63/new_smoke.stdout.log"
+    },
+    {
+      "check": "new_smoke_2",
+      "classification": "PASS",
+      "exit_code": 0,
+      "failed": 0,
+      "passed": 10,
+      "skipped": 0,
+      "stderr": "evidence/stage63/new_smoke_2.stderr.log",
+      "stdout": "evidence/stage63/new_smoke_2.stdout.log"
+    },
+    {
+      "check": "compileall",
+      "classification": "PASS",
+      "exit_code": 0,
+      "stderr": "evidence/stage63/compileall.stderr.log",
+      "stdout": "evidence/stage63/compileall.stdout.log"
+    },
+    {
+      "check": "cli_help",
+      "classification": "PASS",
+      "exit_code": 0,
+      "stderr": "evidence/stage63/cli_help.stderr.log",
+      "stdout": "evidence/stage63/cli_help.stdout.log"
+    },
+    {
+      "check": "pdf_help",
+      "classification": "PASS",
+      "exit_code": 0,
+      "stderr": "evidence/stage63/pdf_help.stderr.log",
+      "stdout": "evidence/stage63/pdf_help.stdout.log"
+    },
+    {
+      "check": "worker_help",
+      "classification": "PASS",
+      "exit_code": 0,
+      "stderr": "evidence/stage63/worker_help.stderr.log",
+      "stdout": "evidence/stage63/worker_help.stdout.log"
+    }
+  ],
+  "known_limitations": [
+    "SIGKILL of worker cannot be handled in-process; descendants may survive without independent systemd/cgroup manager",
+    "Process groups do not confine setsid/double-fork escapes",
+    "ZAP HTTP API calls are not supervised subprocesses",
+    "Operator acknowledgement is not authenticated or independently attested",
+    "External scanner end-to-end verification not performed"
+  ],
+  "process_policy": "BLOCKED/NO-GO pending independent Ubuntu Server validation",
+  "project": "Cyber Security 2.0",
+  "scanner_execution": "NO: none of ZAP, Nuclei, sqlmap or any external scanner executed",
+  "stage": 63,
+  "stage62_timeout_evidence": {
+    "diagnosis": "15-second full-test limit was shorter than reproduced 46-49 second duration",
+    "elapsed_seconds": 15.007,
+    "exit_code": 124,
+    "file": "evidence/stage62/results.json"
+  },
+  "strict_full_timeout_seconds": 180,
+  "strict_warning_policy": [
+    "error::ResourceWarning",
+    "error::DeprecationWarning"
+  ],
+  "ubuntu_integration_tests": "NOT EXECUTED; gated by CYBERSEC_UBUNTU_SERVER_TESTS=1; two default skips",
+  "version": "2.43.0"
+}

@@ -1,0 +1,26 @@
+# REVIEW ONLY / NOT A DEPLOYABLE PRODUCTION SERVICE, EXPECTS EXIT 3
+[Unit]
+Description=Cybersec Stage65 independent cgroup broker (BLOCKED)
+After=cybersec-witness.service
+Requires=cybersec-witness.service
+[Service]
+Type=exec
+User=cybersec-broker
+Group=cybersec-broker
+ExecStartPre=/opt/cybersec/.venv/bin/python -m cybersec.stage65.preflight --require-admission
+ExecStart=/opt/cybersec/.venv/bin/python -m cybersec.stage65.service --role broker
+Restart=no
+KillMode=control-group
+SendSIGKILL=yes
+TimeoutStopSec=10s
+Delegate=yes
+NoNewPrivileges=yes
+ProtectSystem=strict
+ReadWritePaths=/var/lib/cybersec-broker /run/cybersec /sys/fs/cgroup
+AppArmorProfile=cybersec-broker
+RestrictSUIDSGID=yes
+RestrictNamespaces=yes
+PrivateTmp=yes
+ProtectKernelTunables=no
+[Install]
+WantedBy=multi-user.target

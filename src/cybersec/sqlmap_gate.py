@@ -22,6 +22,9 @@ def validate_candidate(target_url: str, candidate_url: str, parameter: str | Non
 
 def execute_approved_confirmation(repository, confirmation_id: int, *, adapter=None):
     """One-shot consumption, then bounded adapter execution. No worker auto-dispatch."""
+    # A blocked production attempt must not consume the one-shot approval.
+    from cybersec.production_admission import require_production_admission
+    require_production_admission(action="repository-backed sqlmap approval")
     candidate = repository.claim_sqlmap_confirmation(confirmation_id)
     adapter = adapter if adapter is not None else SqlmapConfirmationAdapter()
     try:

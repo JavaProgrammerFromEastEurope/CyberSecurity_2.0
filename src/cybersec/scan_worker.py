@@ -2,14 +2,36 @@
 from __future__ import annotations
 
 import logging
+import signal
+from contextlib import contextmanager
 import threading
 import time
 from dataclasses import dataclass
 
 from cybersec.repository import Repository
 from cybersec.runner import JobRunner
+from cybersec.scanners import AdapterRegistry
 
 logger = logging.getLogger(__name__)
+
+
+@contextmanager
+def worker_signal_handlers(stop_event: threading.Event):
+    """Main-thread CLI SIGTERM/SIGINT requests cooperative subprocess stop.
+
+    SIGKILL cannot be intercepted. Always restore existing handlers so the
+    library API remains usable by long-running hosts.
+    """
+    if threading.current_thread() is not threading.main_thread():
+        raise RuntimeError("Signal handlers may only be installed in the main thread")
+    previous = {sig: signal.getsignal(sig) for sig in (signal.SIGINT, signal.SIGTERM)}
+    try:
+        for sig in previous:
+            signal.signal(sig, lambda signum, frame: stop_event.set())
+        yield
+    finally:
+        for sig, handler in previous.items():
+            signal.signal(sig, handler)
 
 
 @dataclass(frozen=True)
@@ -20,72 +42,45 @@ class WorkerSummary:
 
 
 class _LeaseHeartbeat:
-    def __init__(self, repository: Repository, job_id: int, worker_id: str,
-                 lease_seconds: int, shutdown_event: threading.Event | None = None):
+    def __init__(self, repository: Repository, job_id: int, worker_id: str, lease_seconds: int):
         self.repository = repository
         self.job_id = job_id
         self.worker_id = worker_id
         self.lease_seconds = lease_seconds
-        self.shutdown_event = shutdown_event
         self.stop_event = threading.Event()
         self.lost = threading.Event()
-        self.abort_event = threading.Event()
-        self.cancelled = threading.Event()
-        self.attempt = None
         self.thread = threading.Thread(target=self._run, name=f"scan-lease-{job_id}", daemon=True)
 
     def _run(self) -> None:
-        next_renewal = time.monotonic() + self.lease_seconds / 3
-        while not self.stop_event.wait(0.2):
-            if self.shutdown_event is not None and self.shutdown_event.is_set():
-                self.abort_event.set()
-                return
+        interval = max(1.0, self.lease_seconds / 3)
+        while not self.stop_event.wait(interval):
             try:
-                state = self.repository.inspect_scan_execution(
-                    self.job_id, self.worker_id, self.attempt
-                )
-                if state == "cancelled":
-                    self.cancelled.set()
-                    self.abort_event.set()
-                    return
-                if state != "active":
+                if not self.repository.renew_scan_job_lease(
+                    self.job_id, self.worker_id, lease_seconds=self.lease_seconds
+                ):
                     self.lost.set()
-                    self.abort_event.set()
                     logger.error("Lost lease for scan job #%s", self.job_id)
                     return
-                if time.monotonic() >= next_renewal:
-                    if not self.repository.renew_scan_job_lease(
-                        self.job_id, self.worker_id, lease_seconds=self.lease_seconds
-                    ):
-                        self.lost.set()
-                        self.abort_event.set()
-                        logger.error("Cannot renew lease for scan job #%s", self.job_id)
-                        return
-                    next_renewal = time.monotonic() + self.lease_seconds / 3
             except Exception:
                 self.lost.set()
-                self.abort_event.set()
-                logger.exception("Could not inspect/renew lease for scan job #%s", self.job_id)
+                logger.exception("Could not renew lease for scan job #%s", self.job_id)
                 return
 
     def __enter__(self):
-        with __import__("cybersec.db", fromlist=["connect"]).connect(self.repository.db_path) as db:
-            row = db.execute("SELECT attempt_count FROM scan_jobs WHERE id=?", (self.job_id,)).fetchone()
-        self.attempt = int(row["attempt_count"]) if row else None
         self.thread.start()
         return self
 
     def __exit__(self, *_):
         self.stop_event.set()
         self.thread.join(timeout=max(2.0, self.lease_seconds / 3 + 1))
-        if self.thread.is_alive():
-            from cybersec.process_supervision import ScanExecutionUncertain
-            raise ScanExecutionUncertain("Lease observer did not stop; worker must not claim another job")
 
 
 def run_scan_worker(repository: Repository, *, worker_id: str, lease_seconds: int = 60,
                     idle_seconds: float = 2.0, max_jobs: int = 0, max_attempts: int = 3,
-                    stop_event: threading.Event | None = None) -> WorkerSummary:
+                    stop_event: threading.Event | None = None,
+                    registry: AdapterRegistry | None = None) -> WorkerSummary:
+    from cybersec.production_admission import require_production_admission
+    require_production_admission(action="scanner-worker lifecycle")
     worker_id = str(worker_id).strip()
     if not worker_id or len(worker_id) > 128:
         raise ValueError("worker_id must contain 1-128 characters.")
@@ -95,18 +90,9 @@ def run_scan_worker(repository: Repository, *, worker_id: str, lease_seconds: in
         raise ValueError("idle_seconds must be between 0.1 and 60.")
     if max_jobs < 0:
         raise ValueError("max_jobs cannot be negative.")
-    from cybersec.cgroup_containment import production_mode, ContainmentBlocked
-    if production_mode():
-        # Stage 62 implements an executable candidate but does not have an
-        # independently attested production permit authority. Consequently
-        # even a host with all observable mechanisms MUST NOT claim work.
-        from cybersec.stage62_audit import audit_host
-        host = audit_host()
-        raise ContainmentBlocked('Independent production admission unavailable: '+
-                                 ', '.join(host['blockers'] or host['unproven']))
     stop_event = stop_event or threading.Event()
     claimed = completed = failed = 0
-    runner = JobRunner(repository)
+    runner = JobRunner(repository, registry=registry)
 
     while not stop_event.is_set() and (max_jobs == 0 or claimed < max_jobs):
         job = repository.claim_next_scan_job(
@@ -119,9 +105,9 @@ def run_scan_worker(repository: Repository, *, worker_id: str, lease_seconds: in
             continue
         claimed += 1
         try:
-            with _LeaseHeartbeat(repository, job.id, worker_id, lease_seconds,
-                                 shutdown_event=stop_event) as monitor:
-                runner.run(job.id, worker_id=worker_id, cancel_event=monitor.abort_event)
+            with _LeaseHeartbeat(repository, job.id, worker_id, lease_seconds) as heartbeat:
+                runner.run(job.id, worker_id=worker_id,
+                           stop_requested=lambda: stop_event.is_set() or heartbeat.lost.is_set())
             current = repository.get_job(job.id)
             if current and current.status == "completed":
                 completed += 1

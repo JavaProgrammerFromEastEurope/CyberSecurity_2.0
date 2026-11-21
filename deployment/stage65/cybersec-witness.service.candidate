@@ -1,0 +1,18 @@
+# REVIEW ONLY / NO PRODUCTION RELEASE / NOT INSTALLED
+[Unit]
+Description=Cybersec Stage65 independent witness service (lab only)
+[Service]
+Type=exec
+User=cybersec-witness
+Group=cybersec-witness
+ExecStartPre=/opt/cybersec/.venv/bin/python -m cybersec.stage65.preflight --require-admission
+ExecStart=/opt/cybersec/.venv/bin/python -m cybersec.stage65.service --role witness
+Restart=no
+KillMode=control-group
+SendSIGKILL=yes
+NoNewPrivileges=yes
+ProtectSystem=strict
+ReadWritePaths=/var/lib/cybersec-witness /run/cybersec
+AppArmorProfile=cybersec-witness
+[Install]
+WantedBy=multi-user.target

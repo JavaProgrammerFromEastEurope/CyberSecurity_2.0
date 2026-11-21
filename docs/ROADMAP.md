@@ -187,34 +187,26 @@ See `docs/INTEGRATION_PLAN.md`. Stage 55 is the durable scanner-job execution fo
 
 Implemented SQLite-backed atomic scan-job claims, worker leases and heartbeats, bounded retries, expired-lease recovery, a dedicated scanner worker CLI, and persisted cancellation requests. See `STAGE_55_SCANNER_WORKERS.md`. Running external scanner processes are not yet forcibly interrupted by cancellation.
 
-## Stage 61 — Local Scanner Process Supervision (v2.41.0)
 
-- Verified local process-group supervision for **worker-owned** Nuclei launches: bounded runtime/output, persisted cancel and lease-loss polling, SIGTERM → SIGKILL escalation.
-- Added optional lease-attempt fencing on worker error completion and a SIGTERM/SIGINT shutdown path for the scanner-worker CLI.
-- Kept ZAP passive-only; its cancellation is cooperative and cannot guarantee termination of the separate ZAP daemon.
-- Preserved Stage 60 failed/manual recovery policy for uncertain external actions. No automatic restart of externally-effectful work.
-- Retained known gaps in `docs/INTEGRATION_PLAN.md`: its Stage 55–60 items were acceptance *goals*, not proof that PDF, RBAC, scanner-enabled lab E2E or the whole release-candidate program were delivered by Stage 60.
-- Details: `docs/STAGE_61_PROCESS_SUPERVISION.md`.
+## Stage 63 update (2.43.0)
 
-**Next milestone:** independently isolated, authorized end-to-end process containment and worker restart tests; no production deployment claim without cgroup v2/LSM enforcement and observed external scanner termination.
+- Complete Python regression executed with `ResourceWarning` / `DeprecationWarning` as errors. Results and earlier failure logs are retained in `evidence/stage63/`.
+- Scanner worker callback wiring for cancellation/lease loss is implemented for supervised child-process adapters; CLI SIGTERM/SIGINT are cooperative. External job restart remains fail-closed and manually approved.
+- Stage 64 proposed: independent Ubuntu systemd/cgroup v2 lifecycle and OS-enforced production admission, with cross-UID fail-closed tests. Do not confuse Stage 63 POSIX process-group tests with verified containment.
 
+## Stage 64–70 forward plan (reconciled chat release line)
 
-## Stage 62 — OS-Enforced Scanner Containment & Authorized Lab Recovery (2.42.0)
+- **64 (2.44.0):** read-only Ubuntu 26.10 compatibility, systemd lifecycle
+  candidate, mandatory fail-closed production mode; no independent GO proof.
+- **65 (2.45.0):** implemented signed one-use permit, cross-UID broker/witness
+  protocol, pre-exec cgroup v2 primitive, crash-safe witness CAS and Ubuntu
+  opt-in negative tests. Independent AppArmor, systemd and TPM acceptance
+  not yet performed: **BLOCKED/NO-GO**.
+- **66:** identity/RBAC and authenticated scope/secret handling.
+- **67:** authorized scanner workflow integration and per-adapter bounds.
+- **68:** explanation-backed finding normalization/correlation and provenance.
+- **69:** client-ready PDF/HTML/DOCX packages, redaction, audit manifests.
+- **70:** Ubuntu Server 26.10 controlled release-candidate validation.
 
-- Added candidate cgroup v2 pre-exec launch gate, real process PID validation,
-  cgroup.kill-based cancellation and fail-closed host preflight.
-- Added per-attempt independent Ed25519 loopback lab permit validation and
-  production direct-API denial without an external permit.
-- Deployment readiness remains NO-GO until independent systemd, four UIDs,
-  MAC/LSM, cgroup delegation, real crash-restart and scanner E2E evidence.
-- Next Stage 63: independent Linux lab integration, cross-UID MAC bypass
-  audit, controlled cgroup kill under double-fork / setsid, and signed recovery.
-
-
-## Stage 63 — Independent Linux Lab E2E & Mandatory MAC Confinement (v2.43.0)
-
-Implemented review-only kernel LSM/systemd/four-UID observation and signed recovery receipt verification; no production permit. Host remains BLOCKED/NO-GO without independently observed same-UID MAC deny, cgroup escape and systemd restart tests, secure TPM CAS and authorized lab.
-
-### Stage 64 candidate — External Lab Runtime Proof & Durable Recovery Authority
-
-Prioritize real four-UID Linux host commissioning, verified kernel MAC denial, independent witness CAS and cgroup lifecycle evidence. Do not label unexecuted tests or unsigned approvals PASS.
+NO-GO remains until Ubuntu Server, kernel MAC and systemd process lifecycle
+and signed admission proofs are independently recorded.

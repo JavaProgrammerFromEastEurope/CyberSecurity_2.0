@@ -29,11 +29,13 @@ def _repository() -> Repository:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="cybersec",
-        description="Authorized security assessment orchestrator — Stage 62 OS-enforced containment candidate and safe lab admission.",
+        description="Authorized security assessment orchestrator with evidence auditing and bounded scanner workers.",
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
     sub.add_parser("init", help="Initialize local database")
+    sub.add_parser("host-preflight", help="Read-only Ubuntu Server 26.10 host compatibility and NO-GO admission audit")
+    sub.add_parser("host65-preflight", help="Read-only Stage 65 cross-UID and independent cgroup admission NO-GO audit")
 
     scan_worker = sub.add_parser("scanner-worker", help="Run a dedicated durable scanner-job worker")
     scan_worker.add_argument("--worker-id", required=True, help="Unique stable worker identifier")
@@ -169,6 +171,17 @@ def build_parser() -> argparse.ArgumentParser:
     html_report.add_argument("--project-name", default="Cyber Security Assessment", help="Display name in report")
     html_report.add_argument("--assessment-start", help="Assessment window start label/date")
     html_report.add_argument("--assessment-end", help="Assessment window end label/date")
+    pdf_report = report_sub.add_parser("pdf", help="Generate offline A4 PDF assessment report and SHA-256 manifest")
+    pdf_report.add_argument("--output", default="reports/cybersec-report.pdf")
+    pdf_report.add_argument("--target-id", type=int)
+    pdf_report.add_argument("--job-id", type=int)
+    pdf_report.add_argument("--severity", action="append", choices=["Critical", "High", "Medium", "Low", "Info"])
+    pdf_report.add_argument("--priority", action="append", choices=["P1", "P2", "P3", "P4"])
+    pdf_report.add_argument("--profile", choices=["technical", "executive"], default="technical")
+    pdf_report.add_argument("--project-name", default="Cyber Security Assessment")
+    pdf_report.add_argument("--assessment-start")
+    pdf_report.add_argument("--assessment-end")
+    pdf_report.add_argument("--font-path", help="Local Unicode TrueType font; no download")
     history_html = report_sub.add_parser("history-html", help="Generate a self-contained HTML report from saved comparison history")
     history_html.add_argument("--output", default="reports/security-history.html")
     history_html.add_argument("--target-id", type=int, help="Restrict history to one target")
@@ -324,6 +337,12 @@ def main(argv: list[str] | None = None) -> int:
                 output.write_text(rendered + "\n", encoding="utf-8")
             print(rendered)
             return 0 if report.get("valid") and report.get("audit_history_monotonic") else 1
+        if args.command == "host-preflight":
+            from cybersec.stage64_runtime import main as audit_main
+            return audit_main([])
+        if args.command == "host65-preflight":
+            from cybersec.stage65.preflight import main as audit65_main
+            return audit65_main([])
         if args.command == "remote":
             from cybersec.api_client_cli import run_remote_command
             return run_remote_command(args)
@@ -338,25 +357,15 @@ def main(argv: list[str] | None = None) -> int:
             output.write_text(json.dumps(snapshot, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
             print(json.dumps({"exported": True, "output": str(output), "key_count": len(snapshot["keys"]), "audit_event_count": len(snapshot["audit_events"]), "snapshot_sha256": snapshot["snapshot_sha256"], "private_key_exported": False}, indent=2, ensure_ascii=False))
         elif args.command == "scanner-worker":
-            from cybersec.scan_worker import run_scan_worker
-            import signal
+            from cybersec.scan_worker import run_scan_worker, worker_signal_handlers
             import threading
-            stop = threading.Event()
-            old_term = signal.getsignal(signal.SIGTERM)
-            old_int = signal.getsignal(signal.SIGINT)
-            def stop_worker(_signum, _frame):
-                stop.set()
-            signal.signal(signal.SIGTERM, stop_worker)
-            signal.signal(signal.SIGINT, stop_worker)
-            try:
+            stop_event = threading.Event()
+            with worker_signal_handlers(stop_event):
                 summary = run_scan_worker(
                     repo, worker_id=args.worker_id, lease_seconds=args.lease_seconds,
                     idle_seconds=args.idle_seconds, max_jobs=args.max_jobs,
-                    max_attempts=args.max_attempts, stop_event=stop,
+                    max_attempts=args.max_attempts, stop_event=stop_event,
                 )
-            finally:
-                signal.signal(signal.SIGTERM, old_term)
-                signal.signal(signal.SIGINT, old_int)
             print(json.dumps(summary.__dict__, indent=2))
         elif args.command == "api":
             if args.api_command == "serve":
@@ -589,6 +598,15 @@ def main(argv: list[str] | None = None) -> int:
                 output = Path(args.output); output.parent.mkdir(parents=True, exist_ok=True)
                 output.write_text(render_history_html(data), encoding="utf-8")
                 print(f"Exported security history HTML report to: {output}")
+            elif args.report_command == "pdf":
+                from cybersec.pdf_reports import write_pdf_report
+                data = filter_report_data(repo.export_data(), target_id=args.target_id, job_id=args.job_id, severities=args.severity, priorities=args.priority)
+                if args.target_id is not None and not data["targets"]:
+                    raise ValueError(f"Target #{args.target_id} does not exist or has no match for the selected filters.")
+                if args.job_id is not None and not data["jobs"]:
+                    raise ValueError(f"Job #{args.job_id} does not exist or has no match for the selected target.")
+                output, manifest = write_pdf_report(data, args.output, profile=args.profile, project_name=args.project_name, assessment_start=args.assessment_start, assessment_end=args.assessment_end, font_path=args.font_path)
+                print(f"Exported PDF assessment report to: {output}; manifest: {manifest}")
             elif args.report_command == "html":
                 data = filter_report_data(
                     repo.export_data(), target_id=args.target_id, job_id=args.job_id,

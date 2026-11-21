@@ -1,0 +1,40 @@
+ssssssssssssssss........................................................ [ 19%]
+........................................................................ [ 39%]
+........................................................................ [ 59%]
+........................................................................ [ 79%]
+.................................F...................................... [ 99%]
+..                                                                       [100%]
+=================================== FAILURES ===================================
+____________ test_release_version_consistent_with_package_metadata _____________
+tests/test_stage64_ubuntu_runtime.py:222: in test_release_version_consistent_with_package_metadata
+    assert __version__==metadata['project']['version']=='2.44.0'
+E   AssertionError: assert '2.45.0' == '2.44.0'
+E     
+E     - 2.44.0
+E     ?    ^
+E     + 2.45.0
+E     ?    ^
+=========================== short test summary info ============================
+SKIPPED [1] tests/integration/test_stage63_ubuntu.py:44: explicit opt-in on Ubuntu Server required
+SKIPPED [1] tests/integration/test_stage63_ubuntu.py:76: explicit opt-in on Ubuntu Server required
+SKIPPED [1] tests/integration/test_stage64_ubuntu.py:26: Ubuntu Server 26.10 opt-in only; no external scanners
+SKIPPED [1] tests/integration/test_stage64_ubuntu.py:36: Ubuntu Server 26.10 opt-in only; no external scanners
+SKIPPED [1] tests/integration/test_stage64_ubuntu.py:56: Ubuntu Server 26.10 opt-in only; no external scanners
+SKIPPED [1] tests/integration/test_stage64_ubuntu.py:67: Ubuntu Server 26.10 opt-in only; no external scanners
+SKIPPED [1] tests/integration/test_stage64_ubuntu.py:74: Ubuntu Server 26.10 opt-in only; no external scanners
+SKIPPED [1] tests/integration/test_stage64_ubuntu.py:116: Ubuntu Server 26.10 opt-in only; no external scanners
+SKIPPED [1] tests/integration/test_stage65_ubuntu.py:43: Explicit Ubuntu 26.10 opt-in required
+SKIPPED [1] tests/integration/test_stage65_ubuntu.py:52: Explicit Ubuntu 26.10 opt-in required
+SKIPPED [1] tests/integration/test_stage65_ubuntu.py:60: Explicit Ubuntu 26.10 opt-in required
+SKIPPED [1] tests/integration/test_stage65_ubuntu.py:70: Explicit Ubuntu 26.10 opt-in required
+SKIPPED [1] tests/integration/test_stage65_ubuntu.py:82: Explicit Ubuntu 26.10 opt-in required
+SKIPPED [1] tests/integration/test_stage65_ubuntu.py:96: Explicit Ubuntu 26.10 opt-in required
+SKIPPED [1] tests/integration/test_stage65_ubuntu.py:113: Real PID1 SIGKILL/restart requires separate destructive-test opt-in
+SKIPPED [1] tests/integration/test_stage65_ubuntu.py:158: Kernel AppArmor denial probes require separate opt-in
+FAILED tests/test_stage64_ubuntu_runtime.py::test_release_version_consistent_with_package_metadata - AssertionError: assert '2.45.0' == '2.44.0'
+  
+  - 2.44.0
+  ?    ^
+  + 2.45.0
+  ?    ^
+1 failed, 345 passed, 16 skipped in 57.45s
