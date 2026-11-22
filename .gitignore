@@ -40,6 +40,10 @@ build/
 dist/
 *.egg-info/
 
+# Stage70 Day01 local demo and GitHub Actions evidence
+.day01_evidence/
+.day01_ci/
+
 # Stage 21 runtime logs
 .cybersec-logs/
 *.jsonl.*
