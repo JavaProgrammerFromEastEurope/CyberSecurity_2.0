@@ -137,7 +137,7 @@ def smoke(evidence_dir: Path, *, font_path: str | None) -> dict:
         run_cli(["init"], env=env, events=events)
         run_cli(["target", "add", TARGET, "--authorized"], env=env, events=events)
         created = run_cli(["job", "create", TARGET, "--tool", "demo"], env=env, events=events)
-        match = re.search(r"Created queued job #(\\d+)", created)
+        match = re.search(r"Created queued job #(\d+)", created)
         if not match:
             raise AssertionError("JOB_ID_MISSING")
         job_id = match.group(1)
