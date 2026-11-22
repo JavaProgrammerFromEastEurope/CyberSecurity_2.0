@@ -75,6 +75,23 @@ jobs:
           set -e
           echo "$rc" >.day01_ci/deny.exitcode
           test "$rc" -eq 4
+      - name: Build and independently verify FULL and LIGHT source ZIPs
+        shell: bash
+        run: |
+          set +e
+          python tools/day01_package.py --out-dir dist >.day01_ci/package.stdout 2>.day01_ci/package.stderr
+          rc=$?
+          set -e
+          echo "$rc" >.day01_ci/package.exitcode
+          cat .day01_ci/package.stdout || true
+          cat .day01_ci/package.stderr || true
+          test "$rc" -eq 0
+      - name: Upload verified product ZIPs
+        uses: actions/upload-artifact@v4
+        with:
+          name: stage70-day01-product-full-light-round-${{ matrix.round }}
+          path: dist
+          retention-days: 30
       - name: SHA-256 evidence manifests
         if: always()
         shell: bash
