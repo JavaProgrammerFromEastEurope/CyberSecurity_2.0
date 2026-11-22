@@ -161,7 +161,9 @@ def test_process_group_escalation_leaves_no_running_python_descendant(tmp_path):
         try:
             raw=Path(f'/proc/{pid}/stat').read_text()
             return raw.rsplit(')',1)[1].split()[0] not in ('Z','X')
-        except FileNotFoundError:
+        except (FileNotFoundError, ProcessLookupError):
+            # /proc/<pid>/stat may vanish after lookup: ENOENT or ESRCH
+            # both mean the descendant has exited, not an escaped process.
             return False
     try:
         with pytest.raises(ProcessCancelled):
