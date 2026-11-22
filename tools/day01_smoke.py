@@ -5,6 +5,7 @@ DO NOT use this as scanner evidence or production admission.
 from __future__ import annotations
 
 import argparse
+from contextlib import closing
 import hashlib
 import json
 import os
@@ -163,7 +164,7 @@ def smoke(evidence_dir: Path, *, font_path: str | None) -> dict:
         if pdf.read_bytes()[:5] != b"%PDF-":
             raise AssertionError("PDF_HEADER_INVALID")
         db = state_dir / "cybersec.db"
-        with sqlite3.connect(db) as conn:
+        with closing(sqlite3.connect(db)) as conn:
             target_count = conn.execute("select count(*) from targets").fetchone()[0]
             completed = conn.execute("select count(*) from scan_jobs where tool='demo' and status='completed'").fetchone()[0]
             finding_count = conn.execute("select count(*) from normalized_findings where source_tool='manual'").fetchone()[0]
