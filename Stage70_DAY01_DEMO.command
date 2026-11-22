@@ -10,7 +10,8 @@ if [[ "$#" -ne 1 || "$MODE" != "--review" && "$MODE" != "--check" && "$MODE" != 
 fi
 for name in CYBERSEC_EXECUTION_MODE CYBERSEC_RUNTIME_MODE; do
   value="${!name:-}"
-  if [[ "${value,,}" == production || "${value,,}" == prod ]]; then
+  value_lc="$(printf "%s" "$value" | tr "[:upper:]" "[:lower:]")"
+  if [[ "$value_lc" == production || "$value_lc" == prod ]]; then
     echo "FAIL_CLOSED: production environment $name is set; refusing demo" >&2; exit 4
   fi
 done
