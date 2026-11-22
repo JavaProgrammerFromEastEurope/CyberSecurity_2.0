@@ -137,6 +137,14 @@ def render_html_report(
         for priority in ("P1", "P2", "P3", "P4")
     )
 
+    # Build this section before interpolating the template. Python 3.11/3.12
+    # reject backslash-escaped string literals inside f-string expressions.
+    job_section = (
+        '<section><h2>Scan jobs</h2><div class="table-wrap"><table><thead><tr>'
+        '<th>ID</th><th>Tool</th><th>Status</th><th>Created</th><th>Started</th>'
+        '<th>Finished</th></tr></thead><tbody>' + job_rows + '</tbody></table></div></section>'
+    ) if profile == "technical" else ""
+
     return f'''<!doctype html>
 <html lang="en">
 <head>
@@ -158,7 +166,7 @@ section{{margin:28px 0}}h2{{font-size:23px;margin:0 0 14px}}h3{{font-size:19px;m
 <p>This report summarizes recorded scanner and manually entered findings. Severity reflects the source/analyst classification; confidence describes how strongly the result is supported.</p></section>
 <section><h2>Priority overview</h2><div class="metrics">{priority_cards}</div><p class="panel">P1–P4 and the 0–10 risk score are internal triage heuristics, not CVSS scores and not proof of exploitability. Validate findings manually before making remediation or disclosure decisions.</p></section>
 <section><h2>Assessment targets</h2><div class="table-wrap"><table><thead><tr><th>ID</th><th>Target URL</th><th>Authorization acknowledgement</th><th>Registered</th></tr></thead><tbody>{target_rows}</tbody></table></div></section>
-{"<section><h2>Scan jobs</h2><div class=\"table-wrap\"><table><thead><tr><th>ID</th><th>Tool</th><th>Status</th><th>Created</th><th>Started</th><th>Finished</th></tr></thead><tbody>" + job_rows + "</tbody></table></div></section>" if profile == "technical" else ""}
+{job_section}
 <section><h2>{"Prioritized findings and recommended actions" if profile == "executive" else "Findings and remediation"}</h2>{finding_content}</section>
 <footer><p>Generated locally by Cyber Security Orchestrator. This document may contain sensitive assessment details; store and share it only with authorized recipients.</p><p>Report generation does not independently verify authorization, vulnerability exploitability, or completeness of scanner coverage. P1–P4 and 0–10 scores are internal triage heuristics, not CVSS.</p></footer>
 </main></body></html>'''
