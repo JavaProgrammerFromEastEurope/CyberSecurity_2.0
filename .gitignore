@@ -43,6 +43,8 @@ dist/
 # Stage70 Day01 local demo and GitHub Actions evidence
 .day01_evidence/
 .day01_ci/
+.day02_ci/
+.day02_evidence/
 
 # Stage 21 runtime logs
 .cybersec-logs/
