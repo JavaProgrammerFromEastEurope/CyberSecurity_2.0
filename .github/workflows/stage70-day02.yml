@@ -1,0 +1,107 @@
+name: Stage70 Day02 WP04-WP06 strict app regressions
+on:
+  push:
+    branches:
+      - feature/stage70-day02-wp04-wp06-20261123
+  pull_request:
+    paths:
+      - src/cybersec/day02.py
+      - src/cybersec/db.py
+      - tools/day02_e2e.py
+      - tools/day02_package.py
+      - tests/test_stage70_day02.py
+      - Stage70_DAY02_DEMO.command
+      - .github/workflows/stage70-day02.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  strict-e2e:
+    runs-on: ubuntu-latest
+    name: independent-day02-run-@@ROUND@@
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        round: [1,2,3]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+      - name: Install product and test dependencies
+        run: python -m pip install -e '.[dev]'
+      - name: Three strict suites, independent per runner
+        shell: bash
+        run: |
+          mkdir -p .day02_ci
+          set +e
+          python -W error::ResourceWarning -W error::DeprecationWarning -m pytest -q tests >.day02_ci/pytest.stdout 2>.day02_ci/pytest.stderr
+          rc=$?
+          set -e
+          printf '%s\n' "$rc" >.day02_ci/pytest.exitcode
+          tail -25 .day02_ci/pytest.stdout || true
+          test "$rc" -eq 0
+      - name: Local Day01 and Day02 product E2E
+        shell: bash
+        run: |
+          set +e
+          bash Stage70_DAY01_DEMO.command --review >.day02_ci/day01_review.stdout 2>.day02_ci/day01_review.stderr
+          r0=$?
+          bash Stage70_DAY01_DEMO.command --check >.day02_ci/day01_check.stdout 2>.day02_ci/day01_check.stderr
+          r1=$?
+          bash Stage70_DAY01_DEMO.command --run >.day02_ci/day01_run.stdout 2>.day02_ci/day01_run.stderr
+          r2=$?
+          bash Stage70_DAY02_DEMO.command --review >.day02_ci/day02_review.stdout 2>.day02_ci/day02_review.stderr
+          r3=$?
+          bash Stage70_DAY02_DEMO.command --check >.day02_ci/day02_check.stdout 2>.day02_ci/day02_check.stderr
+          r4=$?
+          bash Stage70_DAY02_DEMO.command --run >.day02_ci/day02_run.stdout 2>.day02_ci/day02_run.stderr
+          r5=$?
+          CYBERSEC_EXECUTION_MODE=production bash Stage70_DAY02_DEMO.command --check >.day02_ci/production_deny.stdout 2>.day02_ci/production_deny.stderr
+          r6=$?
+          set -e
+          for spec in "day01_review:$r0" "day01_check:$r1" "day01_run:$r2" "day02_review:$r3" "day02_check:$r4" "day02_run:$r5" "production_deny:$r6"; do
+            name="$(printf '%s' "$spec" | cut -d: -f1)"
+            code="$(printf '%s' "$spec" | cut -d: -f2)"
+            echo "$code" >".day02_ci/$name.exitcode"
+          done
+          test "$r0" -eq 0 && test "$r1" -eq 0 && test "$r2" -eq 0
+          test "$r3" -eq 0 && test "$r4" -eq 0 && test "$r5" -eq 0 && test "$r6" -eq 4
+      - name: Reproducible FULL and one LIGHT ZIP, checked after extraction
+        shell: bash
+        run: |
+          set +e
+          python tools/day02_package.py --out-dir dist >.day02_ci/package.stdout 2>.day02_ci/package.stderr
+          rc=$?
+          set -e
+          echo "$rc" >.day02_ci/package.exitcode
+          cat .day02_ci/package.stdout || true
+          cat .day02_ci/package.stderr || true
+          test "$rc" -eq 0
+      - name: Hash all retained evidence even on failure
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p .day02_ci
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib
+          dirs=[Path('.day02_ci'),Path('.day01_evidence'),Path('.day02_evidence'),Path('dist')]
+          files=sorted(p for d in dirs if d.exists() for p in d.rglob('*') if p.is_file() and p.name!='SHA256SUMS.txt')
+          Path('.day02_ci/SHA256SUMS.txt').write_text(''.join(hashlib.sha256(p.read_bytes()).hexdigest()+'  '+str(p)+'\n' for p in files))
+          print('SHA256_COUNT',len(files))
+          PY
+      - name: Store full stdout stderr exits, demo reports and ZIPs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stage70-day02-evidence-run-@@ROUND@@
+          path: |
+            .day02_ci
+            .day01_evidence
+            .day02_evidence
+            dist
+          include-hidden-files: true
+          retention-days: 30
