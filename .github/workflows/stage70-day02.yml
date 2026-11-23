@@ -18,7 +18,7 @@ permissions:
 jobs:
   strict-e2e:
     runs-on: ubuntu-latest
-    name: independent-day02-run-@@ROUND@@
+    name: independent-day02-run-${{ matrix.round }}
     timeout-minutes: 25
     strategy:
       fail-fast: false
@@ -97,7 +97,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: stage70-day02-evidence-run-@@ROUND@@
+          name: stage70-day02-evidence-run-${{ matrix.round }}
           path: |
             .day02_ci
             .day01_evidence
