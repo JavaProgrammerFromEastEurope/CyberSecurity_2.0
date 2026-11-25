@@ -1,0 +1,367 @@
+--- a/zap_focus_vm.py
++++ b/zap_focus_vm.py
+@@ -240,7 +240,19 @@
+         payload={'kind':'api','component':component,'category':category,'name':name,'params':p,'key':self.key}
+         step=f'{component}.{category}.{name}'
+         when=time.monotonic()
+-        output=docker_http(payload)
++        try:
++            output=docker_http(payload)
++        except subprocess.TimeoutExpired:
++            # No command, request, secret, or source code is copied into evidence.
++            self.records.append({'operation':step,'result':'TIMEOUT',
++                                 'error':'DOCKER_EXEC_TIMEOUT',
++                                 'seconds':round(time.monotonic()-when,3)})
++            raise Blocked('ZAP_API_BRIDGE_TIMEOUT_'+step) from None
++        except Blocked:
++            self.records.append({'operation':step,'result':'FAIL',
++                                 'error':'DOCKER_EXEC_BRIDGE_FAILURE',
++                                 'seconds':round(time.monotonic()-when,3)})
++            raise
+         self.records.append({'operation':step,'result':'PASS' if output.get('ok') else 'FAIL',
+                              'error':output.get('error'),'seconds':round(time.monotonic()-when,3)})
+         gate(bool(output.get('ok')),'ZAP_API_'+step+'_'+str(output.get('error','UNKNOWN')))
+@@ -1452,17 +1464,30 @@
+                     with socket.create_connection(('127.0.0.1',port),timeout=0.5) as sock:
+                         r['loopback_connected']=True
+                         sock.settimeout(0.8)
+-                        header=sock.recv(512)
+-                    # Marionette greets with a byte-count-prefixed JSON object.
+-                    # No raw payload, port or browser output leaves the process.
+-                    m=re.fullmatch(rb'[0-9]{1,5}:(\{[^\r\n]{1,450}\})\s*',header)
+-                    if m:
+-                        obj=json.loads(m.group(1))
+-                        if isinstance(obj,dict) and obj.get('applicationType')=='gecko' and \
+-                          type(obj.get('marionetteProtocol')) is int and obj['marionetteProtocol']>=3:
+-                            r['handshake_verified']=True
+-                            r['classification']='DIRECT_HANDSHAKE_PASS_DIAGNOSTIC_ONLY'
+-                            break
++                        # Bound the frame, not the size of a single recv().
++                        # A partial TCP greeting is not a malformed protocol.
++                        frame=b'';frame_deadline=time.monotonic()+2
++                        while b':' not in frame and len(frame)<6 and time.monotonic()<frame_deadline:
++                            chunk=sock.recv(6-len(frame))
++                            if not chunk:break
++                            frame+=chunk
++                        prefix,sep,rest=frame.partition(b':')
++                        if not (sep and re.fullmatch(rb'[0-9]{1,3}',prefix)):
++                            raise ValueError('FRAME_HEADER_INVALID')
++                        length=int(prefix)
++                        if not 2<=length<=450:raise ValueError('FRAME_LENGTH_INVALID')
++                        while len(rest)<length and time.monotonic()<frame_deadline:
++                            chunk=sock.recv(length-len(rest))
++                            if not chunk:break
++                            rest+=chunk
++                        if len(rest)!=length:raise ValueError('FRAME_INCOMPLETE')
++                    # The content is never logged or transferred to macOS.
++                    obj=json.loads(rest)
++                    if isinstance(obj,dict) and obj.get('applicationType')=='gecko' and \
++                      type(obj.get('marionetteProtocol')) is int and obj['marionetteProtocol']>=3:
++                        r['handshake_verified']=True
++                        r['classification']='DIRECT_HANDSHAKE_PASS_DIAGNOSTIC_ONLY'
++                        break
+                     r['classification']='HANDSHAKE_UNVERIFIED'
+                 except (OSError,ValueError,TypeError):
+                     r['classification']='TCP_OR_HANDSHAKE_UNAVAILABLE'
+@@ -2051,14 +2076,15 @@
+         # V61: independent native Marionette startup control, not GeckoDriver.
+         # Diagnostic only after primary admission failure; no scan or network URL.
+         if native_marionette_control and not evidence['fixture_navigation_confirmed']:
+-            try:
+-                native=docker_native_marionette_control()
+-                diagnostics['direct_marionette_about_blank_control']=native
+-                diagnostics['direct_marionette_classification']=(
+-                    'DIRECT_MARIONETTE_AVAILABLE_PRIMARY_BLOCKED' if native['handshake_verified']
+-                    else 'DIRECT_MARIONETTE_UNAVAILABLE_PRIMARY_BLOCKED')
+-            except (Blocked,OSError,subprocess.TimeoutExpired):
+-                diagnostics['direct_marionette_classification']='DIRECT_MARIONETTE_INFRASTRUCTURE_BLOCKED'
++            if 'direct_marionette_classification' not in diagnostics:
++                try:
++                    native=docker_native_marionette_control()
++                    diagnostics['direct_marionette_about_blank_control']=native
++                    diagnostics['direct_marionette_classification']=(
++                        'DIRECT_MARIONETTE_AVAILABLE_PRIMARY_BLOCKED' if native['handshake_verified']
++                        else 'DIRECT_MARIONETTE_UNAVAILABLE_PRIMARY_BLOCKED')
++                except (Blocked,OSError,subprocess.TimeoutExpired):
++                    diagnostics['direct_marionette_classification']='DIRECT_MARIONETTE_INFRASTRUCTURE_BLOCKED'
+         gate(evidence['driver_executable'],'CONFIGURED_GECKODRIVER_NOT_EXECUTABLE')
+         gate(evidence['elf_linux_aarch64'],'CONFIGURED_GECKODRIVER_NOT_ARM64')
+         gate(evidence['driver_version_ok'],'CONFIGURED_GECKODRIVER_VERSION_FAILED')
+@@ -2213,10 +2239,10 @@
+                  for x in ('CYBERSEC_RUNTIME_MODE','CYBERSEC_EXECUTION_MODE')),'PRODUCTION_REFUSED')
+     EVIDENCE.mkdir(mode=0o700,parents=True,exist_ok=True)
+     os.chmod(EVIDENCE,0o700)
+-    sid='stage70_zap_focused_v61_'+datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')+'_'+secrets.token_hex(4)
++    sid='stage70_zap_focused_v62_'+datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')+'_'+secrets.token_hex(4)
+     evd=EVIDENCE/sid
+     evd.mkdir(mode=0o700)
+-    state={'schema':'stage70-zap-focused-v61-v1','run_id':sid,'overall':'BLOCKED/NO-GO',
++    state={'schema':'stage70-zap-focused-v62-v1','run_id':sid,'overall':'BLOCKED/NO-GO',
+            'production':'BLOCKED/NO-GO','stage71':'NOT_OPENED','day04':'NOT_RUN',
+            'active_scan':False,'target':TARGET,'checks':{},'zaproxy_api_transport':'DOCKER_EXEC_IN_CONTAINER_LOOPBACK',
+            'spider':'NOT_RUN','ajax_spider':'NOT_RUN','passive':'NOT_RUN'}
+@@ -2299,15 +2325,32 @@
+              'PINNED_TARGET_NOT_REACHABLE_FROM_ZAP')
+         state['checks']['internal_target_http']='PASS'
+         state['checks']['docker_state_after_ready']=monitor_state()
++        # V62: perform direct Marionette before ZAP context, Spider and WebDriver.
++        # Earlier V61 failed in context setup and never reached native control.
++        state['checks']['phase']='NATIVE_MARIONETTE_PREFLIGHT'
++        state['checks']['native_marionette_preflight']={'result':'NOT_RUN'}
++        try:
++            direct=docker_native_marionette_control()
++            state['checks']['native_marionette_preflight']={
++                'result':'DIAGNOSTIC_PASS' if direct['handshake_verified'] else 'DIAGNOSTIC_BLOCKED',
++                'proof':direct}
++        except (Blocked,OSError,subprocess.TimeoutExpired):
++            state['checks']['native_marionette_preflight']={
++                'result':'INFRASTRUCTURE_BLOCKED'}
++        # The diagnostic is independent and NEVER permits WebDriver or AJAX.
+         # AJAX `inScope=true` must not silently become an empty or global scope.
+         # Context is restricted to the exact isolated nginx fixture hostname.
+         ctx='Stage70_Day03_Fixture'
++        state['checks']['phase']='CONTEXT_CREATE'
+         api.call('context','action','newContext',{'contextName':ctx})
++        state['checks']['phase']='CONTEXT_INCLUDE'
+         api.call('context','action','includeInContext',
+                  {'contextName':ctx,'regex':r'^http://day03-target:8080/.*'})
++        state['checks']['phase']='CONTEXT_SET_SCOPE'
+         api.call('context','action','setContextInScope',
+                  {'contextName':ctx,'booleanInScope':'true'})
+         state['checks']['zap_fixture_context']='PASS_EXACT_INTERNAL_TARGET_REGEX'
++        state['checks']['phase']='SPIDER_AND_FIRST_PASSIVE'
+         report=day03.run_lab(api,authorization=True,runtime=True,ajax=False,
+                               browser_isolated=True)
+         gate(report['spider']==100 and report['passive_drained'] is True,'SPIDER_PASSIVE_NOT_COMPLETE')
+@@ -2321,7 +2364,18 @@
+         state['checks']['internal_fixture_http_routes']=docker_proxy_route_probe()
+         # We still collect real WebDriver behavior even if the proxy route is
+         # unavailable, but never allow AJAX admission on a failed route.
++        state['checks']['phase']='WEBDRIVER_AND_AJAX'
+         state['checks']['ajax_diagnostic']={}
++        # Reuse early proof; avoid duplicate direct browser startup.
++        pre=state['checks']['native_marionette_preflight']
++        if pre.get('result')=='DIAGNOSTIC_PASS':
++            state['checks']['ajax_diagnostic']['direct_marionette_about_blank_control']=pre['proof']
++            state['checks']['ajax_diagnostic']['direct_marionette_classification']='DIRECT_MARIONETTE_AVAILABLE_PRIMARY_BLOCKED'
++        elif pre.get('result')=='DIAGNOSTIC_BLOCKED':
++            state['checks']['ajax_diagnostic']['direct_marionette_about_blank_control']=pre['proof']
++            state['checks']['ajax_diagnostic']['direct_marionette_classification']='DIRECT_MARIONETTE_UNAVAILABLE_PRIMARY_BLOCKED'
++        else:
++            state['checks']['ajax_diagnostic']['direct_marionette_classification']='DIRECT_MARIONETTE_INFRASTRUCTURE_BLOCKED'
+         # ZAP 2.17 Selenium API does not expose selenium.view.getBrowserIds.
+         # Use documented Selenium/AJAX APIs and require observed crawl results.
+         result=run_ajax_supported_api(api,day03,
+@@ -2337,6 +2391,7 @@
+         state['checks']['geckodriver_in_path']=result['geckodriver_in_path']
+         state['checks']['ajax_observed_running']=result['ajax_observed_running']
+         state['ajax_spider']='PASS_COMPLETED_FIREFOX_HEADLESS'
++        state['checks']['phase']='SECOND_PASSIVE'
+         day03._wait_passive(api,limits=day03.Limits(),clock=time.monotonic,sleep=time.sleep)
+         state['passive']='PASS_DRAINED_AFTER_SPIDER_AND_AJAX'
+         report.update(result)
+@@ -2344,10 +2399,15 @@
+         report['api_transport']='DOCKER_EXEC_IN_CONTAINER_LOOPBACK'
+         (evd/'day03_lab.json').write_text(json.dumps(report,indent=2,sort_keys=True)+'\n')
+         state['checks']['complete_proof_sha256']=sha(evd/'day03_lab.json')
++        state['checks']['phase']='COMPLETE'
+         state['overall']='ZAP_FOCUSED_LAB_PASS_NOT_PRODUCTION'
+         rc=0
+-    except (Blocked,ValueError,OSError,RuntimeError,subprocess.TimeoutExpired) as e:
+-        state['error']=type(e).__name__+': '+str(e)[:160]
++    except subprocess.TimeoutExpired:
++        state['error']='SUBPROCESS_TIMEOUT_REDACTED'
++    except (Blocked,ValueError,OSError,RuntimeError) as e:
++        msg=str(e)
++        state['error']=(type(e).__name__+': '+msg if re.fullmatch(
++            r'[A-Za-z0-9_.-]{1,140}',msg) else type(e).__name__+': REDACTED')
+     except Exception as e:
+         state['error']='UNEXPECTED_'+type(e).__name__
+     finally:
+--- a/mac_run.py
++++ b/mac_run.py
+@@ -13,7 +13,7 @@
+ 
+ ROOT=Path(__file__).resolve().parent
+ VM='cyberadmin@192.168.64.2'
+-REMOTE_DIR='/home/cyberadmin/cybersec-zap-focused-v61'
++REMOTE_DIR='/home/cyberadmin/cybersec-zap-focused-v62'
+ EVIDENCE=Path.home()/'Documents/CyberSecurity_2.0/EVIDENCE'
+ SSH=['ssh','-o','BatchMode=yes','-o','StrictHostKeyChecking=yes','-o','ConnectTimeout=12',
+      '-i',str(Path.home()/'.ssh/id_ed25519')]
+@@ -35,7 +35,7 @@
+     if set(manifest['files']) != {p.relative_to(ROOT).as_posix() for p in ROOT.rglob('*')
+                                   if p.is_file() and p.name!='SOURCE_SHA256.json'}:
+         raise RuntimeError('SOURCE_FILESET_MISMATCH')
+-    print('V61_ZAP_FOCUSED_SOURCE_SHA256_PASS '+str(len(manifest['files'])),flush=True)
++    print('V62_ZAP_FOCUSED_SOURCE_SHA256_PASS '+str(len(manifest['files'])),flush=True)
+ 
+ def runstep(cmd,root,name,timeout):
+     try:
+@@ -107,11 +107,11 @@
+         return 4
+     EVIDENCE.mkdir(parents=True,exist_ok=True,mode=0o700)
+     os.chmod(EVIDENCE,0o700)
+-    tag='ZAP_FOCUSED_MAC_V61_'+datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')
++    tag='ZAP_FOCUSED_MAC_V62_'+datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')
+     work=EVIDENCE/tag
+     work.mkdir(mode=0o700)
+     code=4
+-    status={'schema':'stage70-zap-mac-v61-direct-marionette-baseline','production':'BLOCKED/NO-GO',
++    status={'schema':'stage70-zap-mac-v62-early-preflight-api-timeout','production':'BLOCKED/NO-GO',
+             'stage71':'NOT_OPENED','day04':'NOT_RUN','result':'BLOCKED'}
+     try:
+         rc,_=runstep(SSH+[VM,'mkdir -p -m 700 '+REMOTE_DIR],work,'ssh_create_dir',35)
+@@ -122,7 +122,7 @@
+         rc,out=runstep(SSH+[VM,'python3 '+REMOTE_DIR+'/zap_focus_vm.py --apply'],
+                        work,'ubuntu_zap_focused',1100)
+         status['vm_exit_code']=rc
+-        m=re.search(r'^FOCUSED_EVIDENCE_ZIP=(/home/cyberadmin/cybersec-zap-focused-evidence/stage70_zap_focused_v61_\d{8}T\d{6}Z_[a-f0-9]{8}\.zip)$',out,re.M)
++        m=re.search(r'^FOCUSED_EVIDENCE_ZIP=(/home/cyberadmin/cybersec-zap-focused-evidence/stage70_zap_focused_v62_\d{8}T\d{6}Z_[a-f0-9]{8}\.zip)$',out,re.M)
+         if m:
+             remote=m.group(1)
+             r1,_=runstep(SCP+[VM+':'+remote,str(work/'VM_ZAP_FOCUSED_EVIDENCE.zip')],work,'scp_get_vm_evidence',120)
+--- a/run_strict_regressions.py
++++ b/run_strict_regressions.py
+@@ -1,34 +1,48 @@
+ #!/usr/bin/env python3
+-"""Run complete inherited V60->V59->V58->V57 regressions against V61 source.
+-
+-Restores the original V60 ZIP to a private temporary folder with SHA-256 and
+-CRC verification, then injects only the candidate source and test adapters.
+-"""
++"""V62 full inherited V61/V60/V59/V58/V57 regression in ephemeral clones."""
+ from pathlib import Path
+ import hashlib,io,lzma,os,shutil,subprocess,sys,tempfile,zipfile
+-ROOT=Path(__file__).resolve().parent
+-SHA=lambda x:hashlib.sha256(x).hexdigest()
+-PREFIX='Stage70_ZAP_API_AJAX_SPIDER_PASSIVE_FOCUSED_V60_ZAP_API_READINESS_TIMEOUT_RECOVERY_LT10MB'
+-raw_xz=(ROOT/'HISTORY/ORIGINAL_V60_UNCHANGED.zip.xz').read_bytes()
+-assert SHA(raw_xz)==(ROOT/'HISTORY/ORIGINAL_V60_COMPRESSED_SHA256.txt').read_text().split()[0]
+-raw=lzma.decompress(raw_xz)
+-assert SHA(raw)==(ROOT/'HISTORY/ORIGINAL_V60_SHA256.txt').read_text().split()[0]
+-with tempfile.TemporaryDirectory(prefix='stage70_v61_regression_') as td:
+-    tmp=Path(td)
++root=Path(__file__).resolve().parent
++sha=lambda b:hashlib.sha256(b).hexdigest()
++x=(root/'HISTORY/ORIGINAL_V61_UNCHANGED.zip.xz').read_bytes()
++assert sha(x)==(root/'HISTORY/ORIGINAL_V61_COMPRESSED_SHA256.txt').read_text().split()[0]
++raw=lzma.decompress(x)
++assert sha(raw)==(root/'HISTORY/ORIGINAL_V61_SHA256.txt').read_text().split()[0]
++with tempfile.TemporaryDirectory(prefix='stage70_v62_cumulative_') as d:
++    tmp=Path(d)
+     with zipfile.ZipFile(io.BytesIO(raw)) as z:
+         assert z.testzip() is None
+         assert all(not Path(n).is_absolute() and '..' not in Path(n).parts for n in z.namelist())
+         z.extractall(tmp)
+-    previous=tmp/PREFIX
+-    assert previous.is_dir()
+-    for name in ('zap_focus_vm.py','mac_run.py'):
+-        shutil.copyfile(ROOT/name,previous/name)
+-    shutil.copyfile(ROOT/'run_v60_test_harness.py',previous/'run_strict_regressions.py')
+-    shutil.copyfile(ROOT/'run_v59_test_harness.py',previous/'run_v59_test_harness.py')
+-    shutil.copyfile(ROOT/'tests/test_v61_native_marionette.py',previous/'tests/test_v61_native_marionette.py')
+-    p=subprocess.run([sys.executable,'run_strict_regressions.py'],cwd=previous,
+-        stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=175,
++    v61=tmp/'Stage70_ZAP_API_AJAX_SPIDER_PASSIVE_FOCUSED_V61_DIRECT_MARIONETTE_BASELINE_LT10MB'
++    assert v61.is_dir()
++    for nm in ('zap_focus_vm.py','mac_run.py'):
++        shutil.copyfile(root/nm,v61/nm)
++    shutil.copyfile(root/'tests/test_v62_preflight_timeout.py',v61/'tests/test_v62_preflight_timeout.py')
++    # Modify only temporary test harness adapters. Original V61 ZIP never changes.
++    h=v61/'run_strict_regressions.py';t=h.read_text()
++    needle="    shutil.copyfile(ROOT/'tests/test_v61_native_marionette.py',previous/'tests/test_v61_native_marionette.py')"
++    assert t.count(needle)==1
++    h.write_text(t.replace(needle,needle+"\n    shutil.copyfile(ROOT/'tests/test_v62_preflight_timeout.py',previous/'tests/test_v62_preflight_timeout.py')"))
++    h=v61/'run_v60_test_harness.py';t=h.read_text()
++    assert t.count(needle)==1
++    h.write_text(t.replace(needle,needle+"\n    shutil.copyfile(ROOT/'tests/test_v62_preflight_timeout.py',previous/'tests/test_v62_preflight_timeout.py')"))
++    h=v61/'run_v59_test_harness.py';t=h.read_text()
++    needle=" shutil.copyfile(ROOT/'tests/test_v61_native_marionette.py',base/'tests/test_v61_native_marionette.py')"
++    assert t.count(needle)==1
++    t=t.replace(needle,needle+"\n shutil.copyfile(ROOT/'tests/test_v62_preflight_timeout.py',base/'tests/test_v62_preflight_timeout.py')")
++    t=t.replace("'test_v61_native_marionette.py'):continue", "'test_v61_native_marionette.py','test_v62_preflight_timeout.py'):continue")
++    for old,new in (("'ZAP_FOCUSED_MAC_V61_'","'ZAP_FOCUSED_MAC_V62_'"),
++        ("'stage70_zap_focused_v61_'","'stage70_zap_focused_v62_'"),
++        ("'V61_ZAP_FOCUSED_SOURCE_SHA256_PASS'","'V62_ZAP_FOCUSED_SOURCE_SHA256_PASS'"),
++        ("'cybersec-zap-focused-v61'","'cybersec-zap-focused-v62'")):
++        assert old in t
++        # Adapter old-form literals in inherited tests target V62 now.
++        t=t.replace(old,new)
++    h.write_text(t)
++    p=subprocess.run([sys.executable,'-W','error::ResourceWarning','-W','error::DeprecationWarning',
++        'run_strict_regressions.py'],cwd=v61,capture_output=True,timeout=195,
+         env={**os.environ,'PYTHONDONTWRITEBYTECODE':'1',
+              'PYTHONWARNINGS':'error::ResourceWarning,error::DeprecationWarning'})
+     sys.stdout.buffer.write(p.stdout);sys.stderr.buffer.write(p.stderr)
+-    sys.exit(p.returncode)
++    raise SystemExit(p.returncode)
+--- a/README_RU.md
++++ b/README_RU.md
+@@ -1,35 +1,40 @@
+-# Cyber Security 2.0 — Stage70 ZAP Focused V61 (LT10MB)
++# Cyber Security 2.0 — Stage70 ZAP Focused V62 (LT10MB)
+ 
+-Реальный V60, 25.11.2026 17:42/17:44 UTC: Docker ZAP API стал доступен
+-после временных ошибок, Spider=100%, первый Passive=PASS, 35 Ubuntu
+-тестов PASS. Основной Firefox GeckoDriver HTTP 500/MARIONETTE_HANDSHAKE,
+-дочерний процесс меняет идентичность внутри POST /session.
+-AJAX и второй Passive NOT_RUN; Production=BLOCKED/NO-GO.
++## Источники и вывод
+ 
+-**Изменение V61:** отдельная диагностическая проверка старта Marionette
+-без GeckoDriver, без явного ZAP-прокси и без внешней навигации: Firefox
+---headless --no-remote --marionette --profile PRIVATE about:blank,
+-в исходном pinned ZAP контейнере с UID 1000:1000.
+-Файл MarionetteActivePort читается только внутри контейнера, адрес подключения
+-строго 127.0.0.1, проверяется приветствие Gecko/Marionette; реальные порт,
+-PID, пути и сырые сообщения не сохраняются. Процесс получает ограниченный
+-тайм-аут, завершается SIGTERM/SIGKILL и удаляет временный профиль.
++- Основа: оригинальный V61 (`0c01be49...56`) сохранён **побайтово** в lossless XZ, без модификации.
++- Новый пользовательский `EVIDENCE.zip` сохранён **побайтово**, включая два V60 и один V61 прогоны.
++- V61 от 25.11.2026 17:55 UTC: ZAP API PASS после 10 временных URL ошибок; Ubuntu targeted 35 PASS; API context.newContext и includeInContext PASS; следующий вызов ZAP API завершился host-side TimeoutExpired. Маршрут/причина зависания API bridge не установлены. В этом запуске Spider, Passive, AJAX и native Marionette — NOT_RUN. Поскольку управление дошло до context.newContext, наиболее близкий неполный шаг — setContextInScope, но отсутствие записи вызова не доказывает, что сервер принял операцию.
+ 
+-**Это диагностический контроль, а не обход обязательной проверки.**
+-Никаких изменений Docker sandbox, caps, root UID, сети, image digest,
+-пин Git, target или scope; никаких Active Scan или Nuclei. Успех
+-контроля не засчитывает WebDriver, AJAX или второй Passive.
+-При отсутствии порта/handshake сохраняется только конечная категория.
++## Отличия V62
+ 
+-История: оригинальный V60 целиком в lossless XZ, доступен для восстановления
+-с побайтовым SHA-256. Оригинальный evidence41 с двумя реальными V60
+-запусками сохранён без изменений. Локальные тесты — не Ubuntu E2E.
++1. Нативный Firefox Marionette `--headless --no-remote --marionette --profile PRIVATE about:blank` запускается **после** проверки ZAP API/целевого HTTP и **до** создания контекста. Это независимая *диагностика*; PASS не заменяет доказательства WebDriver-навигации и AJAX.
++2. Чтение приветствия Marionette использует ограниченный длиной (450 B) TCP-фрейм, допускающий раздробленные recv; только 127.0.0.1, частный профиль, SIGTERM/SIGKILL, уборка.
++3. Docker API bridge при `TimeoutExpired` записывает фазу, `TIMEOUT` и конечную категорию `DOCKER_EXEC_TIMEOUT` без команды, raw JSON, PID или API-ключа. API actions не повторяются автоматически после timeout (избежание недоказанного повторного воздействия).
++4. Явная отметка фаз `NATIVE_MARIONETTE_PREFLIGHT`, `CONTEXT_CREATE/INCLUDE/SET_SCOPE`, `SPIDER_AND_FIRST_PASSIVE`, `WEBDRIVER_AND_AJAX`, `SECOND_PASSIVE`. Fail-closed сохраняется.
++5. Сохранены Docker UID 1000:1000, original Git HEAD, закреплённые Docker image digests, существующая сеть, разрешённый target, /dev/shm=256 MiB, NO Active Scan, NO Nuclei.
+ 
+-## Запуск на Mac
++## Важно
++
++* Если V62 снова остановится на Context Set Scope, это классифицированное `NO-GO`; native preflight будет независимо сохранён. Не пытайтесь запускать Stage71, Day04 или production.
++* Локальные регрессии не подтверждают реальный Firefox/Ubuntu E2E. Для завершения Stage 70 нужны WebDriver session+window+fixture navigation, ненулевые in-scope AJAX results, второй Passive Drain и безопасная уборка.
++* Проверка `SOURCE_SHA256` должна выполняться до запуска `apply`. V62 не меняет закреплённый Git repo.
++
++## Запуск на macOS (UTM Ubuntu ARM64 только после snapshot)
++
++Сохраните ZIP и `ZIP.sha256` в `~/Downloads`, затем:
++
+ ```bash
+-python3 restore_v60.py verify
++cd "$HOME/Downloads"
++shasum -a 256 -c Stage70_ZAP_API_AJAX_SPIDER_PASSIVE_FOCUSED_V62_EARLY_MARIONETTE_API_TIMEOUT_FORENSICS_LT10MB.zip.sha256
++unzip -oq Stage70_ZAP_API_AJAX_SPIDER_PASSIVE_FOCUSED_V62_EARLY_MARIONETTE_API_TIMEOUT_FORENSICS_LT10MB.zip
++cd Stage70_ZAP_API_AJAX_SPIDER_PASSIVE_FOCUSED_V62_EARLY_MARIONETTE_API_TIMEOUT_FORENSICS_LT10MB
++python3 restore_v61.py verify
++python3 audit_evidence.py
+ bash Stage70_ZAP_FOCUSED.command review
+ bash Stage70_ZAP_FOCUSED.command apply
+ ```
+-Подтверждайте YES только в изолированной разрешённой UTM VM со snapshot.
+-Production BLOCKED/NO-GO, DAY-04 NOT_RUN, Stage 71 NOT_OPENED.
++
++В `apply` требуется **YES с настоящего терминала** только после верификации разрешённой изолированной UTM VM и snapshot. Выходные evidence — `~/Documents/CyberSecurity_2.0/EVIDENCE/ZAP_FOCUSED_MAC_V62_*`.
++
++Статус: **Production BLOCKED/NO-GO**, **DAY-04 NOT_RUN**, **Stage 71 NOT_OPENED**.

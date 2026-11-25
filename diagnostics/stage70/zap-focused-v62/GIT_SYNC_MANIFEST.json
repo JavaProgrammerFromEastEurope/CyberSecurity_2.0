@@ -1,0 +1,44 @@
+{
+  "schema": "stage70-v62-github-source-delta-v1",
+  "base_branch": "feature/stage70-day03-wp07-wp09-20261124",
+  "base_commit": "9de9fe0c2fc4e31d695aa9f3bd4594a0a5ecf5dd",
+  "source_v61_zip_sha256": "0c01be49e685c1fd480ff40b0b93ba90efdfc91a4197cddcca32f95f3ab03256",
+  "source_v62_zip_sha256": "3f2d864b8fb3a9daa3b503ebb6fe6cbc2acb3a8c2b5e37034ccfb7e16f8800a4",
+  "evidence_v62_ubuntu_sha256": "e5a7e8bf4d2289ed2163f4b305e2a20d33a27206e08f140b93442c606915e161",
+  "modified_files": [
+    "zap_focus_vm.py",
+    "mac_run.py",
+    "run_strict_regressions.py",
+    "README_RU.md"
+  ],
+  "added_files": [
+    "audit_evidence.py",
+    "audit_lineage.py",
+    "integrity_selftest.py",
+    "restore_v61.py",
+    "tests/test_v62_preflight_timeout.py",
+    "SOURCE_SHA256.json"
+  ],
+  "modified_sha256": {
+    "zap_focus_vm.py": "c2d3829d9cdda14f687dbfe63809beb430ed8b1f625d39e221d1e8b39aeae42c",
+    "mac_run.py": "7ab63cc4293617a3c8c335c5f53f1d88348252476d18caf937a75bb63d7e8518",
+    "run_strict_regressions.py": "61f819365902e92ca66e0a31e77925426293b3283cb16be1f8c21f781f4907d3",
+    "README_RU.md": "04922de43dd070423a0d462806ccd60d0b035a11ce3c1c25c261850d976d51d6"
+  },
+  "added_sha256": {
+    "audit_evidence.py": "a8c39d3537a95c57f60f1d8c5446a5eec3ed295cd01559464d979c799275e153",
+    "audit_lineage.py": "f6938e45958c0fcd4e9a733fb8850dbdcd1c0401e531a7f25423d6e07ea87711",
+    "integrity_selftest.py": "66ab3b1c412a57e303c02c14224eed14d39b3fce42e29736a3f14e88a10d19ef",
+    "restore_v61.py": "8dc3d9dceabe8e320a33a436f80b686e7e7df36bd528299dff47e647fce60976",
+    "tests/test_v62_preflight_timeout.py": "a691e2511a6af2d75167c9a37ab292b44b1dfb96d365e04e93c10b9e5a395e11",
+    "SOURCE_SHA256.json": "c05aa3bfd22ecd1a59c9ee73166d2a2e97ff19cdcc91f0369be2ec3f737740b8"
+  },
+  "excluded_from_public_repo": [
+    "raw Ubuntu evidence",
+    "previous V61/V60 original archives",
+    "long local regression logs"
+  ],
+  "production": "BLOCKED/NO-GO",
+  "stage71": "NOT_OPENED",
+  "day04": "NOT_RUN"
+}
