@@ -1,0 +1,17 @@
+{
+  "based_on": "V74_ORIGINAL_UNCHANGED",
+  "day04": "NOT_RUN",
+  "evidence_bundle": "EVIDENCE/USER_EVIDENCE_PAIR.tar.xz",
+  "new_v74_run": "20261126T173624Z",
+  "prior_v75_webdriver_boundary": "EXISTS_SEPARATE_UNMODIFIED",
+  "production": "BLOCKED/NO-GO",
+  "schema": "stage70-v75-pid-provenance-v1",
+  "stage71": "NOT_OPENED",
+  "ubuntu_e2e_v75": "NOT_RUN",
+  "user_evidence_1": "UNAVAILABLE",
+  "user_evidence_available": [
+    "EVIDENCE(20261126-172555).zip",
+    "EVIDENCE(20261126-180821).zip"
+  ],
+  "v74_sha256": "8c4108e3af996e053188c5da55d04454c1891f876e333f8d9910a52d49ecf9a0"
+}

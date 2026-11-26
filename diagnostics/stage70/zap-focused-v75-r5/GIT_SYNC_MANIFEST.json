@@ -1,0 +1,18 @@
+{
+  "day04": "NOT_RUN",
+  "effective_v75_pid_recovery_sha256": "588bb2150c97d04f1561465f21545bed02035f939aee5ea011e27299a7f2a905",
+  "effective_v75_test_sha256": "7ad4c61c26f85aebe405641b4bcf617468b055de719f0caa711470b766e35346",
+  "inherited_regression": "UNCONFIRMED_TIMEOUT_NO_EXIT_CODE",
+  "local_targeted_tests": "90 PASS each x3 = 270 PASS",
+  "origin_branch": "feature/stage70-zap-focused-v62-forensics-20261125",
+  "origin_head": "f16ed1c5b13175cdd2c351b4281201bf6b5b24ee",
+  "production": "BLOCKED/NO-GO",
+  "r3_original_archive_sha256": "7956839ac3dcb6800231e4dc3176947d7c972c43aea8e5c851a5a7089a7901c1",
+  "r4_original_archive_sha256": "1c4d9441739ba962b73c7bd72c31aa9f2b41ffe48c578e959cd1d3d5c259aa9c",
+  "r5_latest_user_evidence_sha256": "750e5a131f64173de5145a26509f6d882b2e47dedaf98a6d184ea3f1ac71ad7c",
+  "r5_original_archive_sha256": "e7f61fcc7151b4afd4dff4d780e121373afeb32276429786a0c1d8ff015bf114",
+  "schema": "stage70-v75-r5-git-source-snapshot-v1",
+  "stage71": "NOT_OPENED",
+  "ubuntu_r5_ab": "IN_PROGRESS_AS_OF_LAST_UPLOADED_LOG_NOT_VERIFIED",
+  "v75_original_archive_sha256": "11d3add1a47a86a14ba9cb652e8f3a4261a499d1139d27a968d8063b23059d18"
+}
