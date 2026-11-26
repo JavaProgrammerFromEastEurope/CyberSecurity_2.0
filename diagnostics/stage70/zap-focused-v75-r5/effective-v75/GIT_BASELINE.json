@@ -1,0 +1,11 @@
+{
+  "day04": "NOT_RUN",
+  "evidence_v66_sha256": "6a3ad675bfe1bc6fa4fbc854952315755ba2f52b24588a5e76181b10eb4afe9d",
+  "git_commit": "f16ed1c5b13175cdd2c351b4281201bf6b5b24ee",
+  "github_push": "NOT_PERFORMED",
+  "note": "V67 local diagnostic overlay, no production approval or GitHub modification",
+  "source_branch": "feature/stage70-zap-focused-v62-forensics-20261125",
+  "stage71": "NOT_OPENED",
+  "status": "BLOCKED/NO-GO",
+  "v66_original_sha256": "44fcba98a30120b095871b12432efb769f3de32a71556895f274f20d7a48bc3f"
+}

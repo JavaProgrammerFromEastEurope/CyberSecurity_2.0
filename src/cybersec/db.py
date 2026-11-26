@@ -484,4 +484,7 @@ def initialize(path: str | Path) -> None:
             if column not in scan_columns:
                 connection.execute(f"ALTER TABLE scan_jobs ADD COLUMN {column} {declaration}")
         connection.execute("CREATE INDEX IF NOT EXISTS idx_scan_jobs_claim ON scan_jobs(status, lease_until, created_at, id)")
+        # Day02 additive migration executes inside the same DB connection.
+        from cybersec.day02 import apply_migration
+        apply_migration(connection)
 
