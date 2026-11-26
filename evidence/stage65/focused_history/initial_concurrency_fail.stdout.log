@@ -1,0 +1,30 @@
+.......................F..........                                       [100%]
+=================================== FAILURES ===================================
+__________ test_concurrent_claim_serializes_and_never_double_dispatch __________
+tests/test_stage65_contracts.py:158: in test_concurrent_claim_serializes_and_never_double_dispatch
+    results=list(pool.map(claim,range(4)))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.13/concurrent/futures/_base.py:619: in result_iterator
+    yield _result_or_cancel(fs.pop())
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.13/concurrent/futures/_base.py:317: in _result_or_cancel
+    return fut.result(timeout)
+           ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.13/concurrent/futures/_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.13/concurrent/futures/_base.py:401: in __get_result
+    raise self._exception
+/usr/lib/python3.13/concurrent/futures/thread.py:59: in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_stage65_contracts.py:151: in claim
+    barrier.wait(timeout=4)
+/usr/lib/python3.13/threading.py:729: in wait
+    self._wait(timeout)
+/usr/lib/python3.13/threading.py:767: in _wait
+    raise BrokenBarrierError
+E   threading.BrokenBarrierError
+=========================== short test summary info ============================
+FAILED tests/test_stage65_contracts.py::test_concurrent_claim_serializes_and_never_double_dispatch - threading.BrokenBarrierError
+1 failed, 33 passed in 4.41s

@@ -1,0 +1,57 @@
+{
+  "blockers": [
+    "ubuntu_server_26_10",
+    "python_3_14",
+    "openssl_4",
+    "systemd_261_or_newer",
+    "systemd_pid1",
+    "apparmor_kernel_enabled",
+    "worker_apparmor_enforce_label",
+    "four_separate_service_uids",
+    "worker_uid_matches_service",
+    "root_owned_systemd_unit",
+    "systemd_invocation_id_present",
+    "independent_os_mac_negative_tests",
+    "independent_admission_authority",
+    "hardware_monotonic_recovery_permit"
+  ],
+  "checks": {
+    "apparmor_kernel_enabled": false,
+    "cgroup_kill_available": true,
+    "four_separate_service_uids": false,
+    "hardware_monotonic_recovery_permit": false,
+    "independent_admission_authority": false,
+    "independent_os_mac_negative_tests": false,
+    "openssl_4": false,
+    "pidfd_open_available": true,
+    "python_3_14": false,
+    "root_owned_systemd_unit": false,
+    "systemd_261_or_newer": false,
+    "systemd_invocation_id_present": false,
+    "systemd_pid1": false,
+    "ubuntu_server_26_10": false,
+    "unified_cgroup_v2": true,
+    "worker_apparmor_enforce_label": false,
+    "worker_uid_matches_service": false
+  },
+  "openssl_version": "OpenSSL 3.5.5 27 Jan 2026",
+  "os_release": "debian 13",
+  "production_admitted": false,
+  "python_version": "3.13.5",
+  "role_uids": {
+    "cybersec-attester": null,
+    "cybersec-publisher": null,
+    "cybersec-witness": null,
+    "cybersec-worker": null
+  },
+  "schema": "cybersec.stage64.host-inventory.v1",
+  "status": "BLOCKED/NO-GO",
+  "systemd_version": "257",
+  "unproven": [
+    "same-UID legacy scanner and interpreter confinement under kernel MAC",
+    "cgroup migration prevention and no setsid/double-fork escape",
+    "independent live systemd restart and SIGKILL evidence on Ubuntu 26.10",
+    "signed per-attempt scope permit issued by independently administered authority",
+    "durable anti-rollback and one-use recovery authority"
+  ]
+}

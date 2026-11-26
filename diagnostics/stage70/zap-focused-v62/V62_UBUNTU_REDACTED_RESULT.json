@@ -1,0 +1,35 @@
+{
+  "schema": "stage70-v62-public-ubuntu-result-v1",
+  "run_id": "stage70_zap_focused_v62_20261125T181223Z_159c9f42",
+  "completed_utc": "2026-11-25T18:14:21.214249+00:00",
+  "sha256_evidence_zip": "e5a7e8bf4d2289ed2163f4b305e2a20d33a27206e08f140b93442c606915e161",
+  "git_original_head": "9de9fe0c2fc4e31d695aa9f3bd4594a0a5ecf5dd",
+  "ubuntu_targeted_pytest": "35 PASS",
+  "zap_api_version": "2.17.0",
+  "spider": "PASS_100_PERCENT",
+  "first_passive_scan": "PASS_DRAINED_AFTER_SPIDER",
+  "unconfirmed_passive_findings": 14,
+  "native_marionette": {
+    "classification": "DIRECT_HANDSHAKE_PASS_DIAGNOSTIC_ONLY",
+    "handshake_verified": true,
+    "loopback_connected": true,
+    "active_port_file_observed": true,
+    "private_root_cleaned": true
+  },
+  "webdriver": {
+    "session_created": false,
+    "session_http_status": "500",
+    "session_message_signal": "MARIONETTE_HANDSHAKE",
+    "driver_stderr_signals": [
+      "GECKODRIVER_ERROR",
+      "SANDBOX_DENIED"
+    ],
+    "cause": "NOT_YET_PROVEN"
+  },
+  "ajax_spider": "NOT_RUN",
+  "second_passive": "NOT_RUN",
+  "cleanup": "PASS",
+  "production": "BLOCKED/NO-GO",
+  "day04": "NOT_RUN",
+  "stage71": "NOT_OPENED"
+}

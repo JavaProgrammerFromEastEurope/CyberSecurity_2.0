@@ -1,0 +1,42 @@
+{
+  "full_legacy_result": "UNCONFIRMED_TIMEOUT_NO_EXIT_CODE",
+  "full_legacy_stderr": "QA/R5_FULL_INHERITED_ATTEMPT.stderr.txt",
+  "full_legacy_stdout": "QA/R5_FULL_INHERITED_ATTEMPT.stdout.txt",
+  "per_batch": 90,
+  "production": "BLOCKED/NO-GO",
+  "run_results": {
+    "R5_34_1": {
+      "exit_code": 0,
+      "pass": 34
+    },
+    "R5_34_2": {
+      "exit_code": 0,
+      "pass": 34
+    },
+    "R5_34_3": {
+      "exit_code": 0,
+      "pass": 34
+    },
+    "V75_PID_56_1": {
+      "exit_code": 0,
+      "pass": 56
+    },
+    "V75_PID_56_2": {
+      "exit_code": 0,
+      "pass": 56
+    },
+    "V75_PID_56_3": {
+      "exit_code": 0,
+      "pass": 56
+    }
+  },
+  "schema": "stage70-r5-local-regression-summary",
+  "three_batches": 3,
+  "total_confirmed_pass": 270,
+  "ubuntu_e2e": "NOT_RUN",
+  "unique_tests": 90,
+  "warnings_as_errors": [
+    "ResourceWarning",
+    "DeprecationWarning"
+  ]
+}

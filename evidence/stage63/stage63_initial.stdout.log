@@ -1,0 +1,84 @@
+..FF.................                                                    [100%]
+=================================== FAILURES ===================================
+___________________ test_cooperative_sigterm_on_cancellation ___________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-7/test_cooperative_sigterm_on_ca0')
+
+    def test_cooperative_sigterm_on_cancellation(tmp_path):
+        marker = tmp_path / "term.txt"
+        script = ("import signal, time, pathlib, sys; "
+                  f"p=pathlib.Path({str(marker)!r}); "
+                  "signal.signal(signal.SIGTERM, lambda *_: (p.write_text('TERM'), sys.exit(0))); "
+                  "print('ready', flush=True); "
+                  "time.sleep(20)")
+        start = time.monotonic()
+        with pytest.raises(ProcessCancelled):
+            ProcessSupervisor(grace_seconds=.3, poll_seconds=.03).run(
+                [sys.executable, "-u", "-c", script], timeout=3,
+                cancelled=lambda: time.monotonic() - start > .3)
+>       assert marker.read_text() == "TERM"
+               ^^^^^^^^^^^^^^^^^^
+
+tests/test_stage63_worker_cancellation.py:115: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib/python3.13/pathlib/_local.py:548: in read_text
+    return PathBase.read_text(self, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.13/pathlib/_abc.py:632: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/tmp/pytest-of-root/pytest-7/test_cooperative_sigterm_on_ca0/term.txt')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/tmp/pytest-of-root/pytest-7/test_cooperative_sigterm_on_ca0/term.txt'
+
+/usr/lib/python3.13/pathlib/_local.py:539: FileNotFoundError
+_____________ test_sigkill_escalation_for_sigterm_ignoring_python ______________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-7/test_sigkill_escalation_for_si0')
+
+    def test_sigkill_escalation_for_sigterm_ignoring_python(tmp_path):
+        marker = tmp_path / "pid.txt"
+        script = ("import signal, time, os, pathlib; "
+                  "signal.signal(signal.SIGTERM, signal.SIG_IGN); "
+                  f"pathlib.Path({str(marker)!r}).write_text(str(os.getpid())); "
+                  "time.sleep(20)")
+        start = time.monotonic()
+        with pytest.raises(ProcessCancelled):
+            ProcessSupervisor(grace_seconds=.12, poll_seconds=.03).run(
+                [sys.executable, "-c", script], timeout=3,
+                cancelled=lambda: time.monotonic() - start > .3)
+>       _until(marker.exists)
+
+tests/test_stage63_worker_cancellation.py:129: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+predicate = <bound method PathBase.exists of PosixPath('/tmp/pytest-of-root/pytest-7/test_sigkill_escalation_for_si0/pid.txt')>
+timeout = 4
+
+    def _until(predicate, timeout=4):
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < deadline:
+            if predicate():
+                return
+            time.sleep(.02)
+>       raise AssertionError("timed out waiting for fixture event")
+E       AssertionError: timed out waiting for fixture event
+
+tests/test_stage63_worker_cancellation.py:29: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_stage63_worker_cancellation.py::test_cooperative_sigterm_on_cancellation - FileNotFoundError: [Errno 2] No such file or directory: '/tmp/pytest-of-root/pytest-7/test_cooperative_sigterm_on_ca0/term.txt'
+FAILED tests/test_stage63_worker_cancellation.py::test_sigkill_escalation_for_sigterm_ignoring_python - AssertionError: timed out waiting for fixture event
+2 failed, 19 passed in 9.12s

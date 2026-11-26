@@ -1,0 +1,123 @@
+name: Stage70 Day01 product smoke and strict regression
+on:
+  push:
+    branches:
+      - feature/stage70-day01-wp01-wp03-20261122
+  pull_request:
+    paths:
+      - 'Stage70_DAY01_DEMO.command'
+      - 'tools/day01_smoke.py'
+      - 'tests/test_day01_smoke_contract.py'
+      - '.github/workflows/stage70-day01.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  strict-and-smoke:
+    name: 'independent-run-${{ matrix.round }}'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        round: [1, 2, 3]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+      - name: Install project and diagnostics
+        run: python -m pip install -e '.[dev]'
+      - name: Full strict pytest (warnings as errors)
+        shell: bash
+        run: |
+          mkdir -p .day01_ci
+          set +e
+          python -W error::ResourceWarning -W error::DeprecationWarning -m pytest -q >.day01_ci/pytest.stdout 2>.day01_ci/pytest.stderr
+          rc=$?
+          set -e
+          echo "$rc" >.day01_ci/pytest.exitcode
+          tail -30 .day01_ci/pytest.stdout || true
+          test "$rc" -eq 0
+      - name: Review and dependency preflight
+        shell: bash
+        run: |
+          set +e
+          bash Stage70_DAY01_DEMO.command --review >.day01_ci/review.stdout 2>.day01_ci/review.stderr
+          review_rc=$?
+          bash Stage70_DAY01_DEMO.command --check >.day01_ci/check.stdout 2>.day01_ci/check.stderr
+          check_rc=$?
+          set -e
+          echo "$review_rc" >.day01_ci/review.exitcode
+          echo "$check_rc" >.day01_ci/check.exitcode
+          test "$review_rc" -eq 0
+          test "$check_rc" -eq 0
+      - name: Actual offline demo E2E - CLI SQLite HTML PDF API dashboard
+        shell: bash
+        run: |
+          set +e
+          bash Stage70_DAY01_DEMO.command --run >.day01_ci/demo.stdout 2>.day01_ci/demo.stderr
+          rc=$?
+          set -e
+          echo "$rc" >.day01_ci/demo.exitcode
+          cat .day01_ci/demo.stdout || true
+          cat .day01_ci/demo.stderr || true
+          test "$rc" -eq 0
+      - name: Production mode must be denied
+        shell: bash
+        run: |
+          set +e
+          CYBERSEC_EXECUTION_MODE=production bash Stage70_DAY01_DEMO.command --check >.day01_ci/deny.stdout 2>.day01_ci/deny.stderr
+          rc=$?
+          set -e
+          echo "$rc" >.day01_ci/deny.exitcode
+          test "$rc" -eq 4
+      - name: Build and independently verify FULL and LIGHT source ZIPs
+        shell: bash
+        run: |
+          set +e
+          python tools/day01_package.py --out-dir dist >.day01_ci/package.stdout 2>.day01_ci/package.stderr
+          rc=$?
+          set -e
+          echo "$rc" >.day01_ci/package.exitcode
+          cat .day01_ci/package.stdout || true
+          cat .day01_ci/package.stderr || true
+          test "$rc" -eq 0
+      - name: Upload verified product ZIPs
+        uses: actions/upload-artifact@v4
+        with:
+          name: stage70-day01-product-full-light-round-${{ matrix.round }}
+          path: dist
+          retention-days: 30
+      - name: SHA-256 evidence manifests
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p .day01_ci
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib,json
+          files=[]
+          for directory in (Path(".day01_ci"),Path(".day01_evidence")):
+              if directory.exists():
+                  for p in directory.rglob("*"):
+                      if p.is_file() and p.name != "SHA256SUMS.txt":
+                          files.append(p)
+          files.sort()
+          content="".join(hashlib.sha256(p.read_bytes()).hexdigest()+"  "+str(p)+"\n" for p in files)
+          Path(".day01_ci/SHA256SUMS.txt").write_text(content)
+          print("MANIFEST_FILES="+str(len(files)))
+          PY
+      - name: Preserve all stdout/stderr/exit-code and outputs, even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stage70-day01-round-${{ matrix.round }}
+          path: |
+            .day01_ci
+            .day01_evidence
+          include-hidden-files: true
+          retention-days: 30

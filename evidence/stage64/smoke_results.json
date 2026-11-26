@@ -1,0 +1,101 @@
+{
+  "compileall": {
+    "argv": [
+      "/opt/pyvenv/bin/python",
+      "-W",
+      "error::ResourceWarning",
+      "-W",
+      "error::DeprecationWarning",
+      "-m",
+      "compileall",
+      "-q",
+      "src",
+      "tests"
+    ],
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "seconds": 0.956,
+    "timeout": false,
+    "classification": "PASS",
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "cli_help": {
+    "argv": [
+      "/opt/pyvenv/bin/python",
+      "-m",
+      "cybersec",
+      "--help"
+    ],
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "seconds": 0.972,
+    "timeout": false,
+    "classification": "PASS",
+    "stdout_sha256": "e4cd05f2a430c113763d4fd61a0b3090ca80ab179d8df9438c8d418bc05438b0",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "pdf_help": {
+    "argv": [
+      "/opt/pyvenv/bin/python",
+      "-m",
+      "cybersec",
+      "report",
+      "pdf",
+      "--help"
+    ],
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "seconds": 1.188,
+    "timeout": false,
+    "classification": "PASS",
+    "stdout_sha256": "01d7d925495cf2bee3368f50c7071a3ea8290a81af497f10bb7e100621ee61ba",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "worker_help": {
+    "argv": [
+      "/opt/pyvenv/bin/python",
+      "-m",
+      "cybersec",
+      "scanner-worker",
+      "--help"
+    ],
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "seconds": 0.782,
+    "timeout": false,
+    "classification": "PASS",
+    "stdout_sha256": "34d5f4d143b4abc843a659df7f823709ec64354e2ccff549ed572518ea80d60c",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "ubuntu_host_preflight": {
+    "argv": [
+      "/opt/pyvenv/bin/python",
+      "-m",
+      "cybersec",
+      "host-preflight"
+    ],
+    "exit_code": 3,
+    "expected_exit_code": 3,
+    "seconds": 0.903,
+    "timeout": false,
+    "classification": "PASS",
+    "stdout_sha256": "43c1665c438753283d889296f19379ab5a3c5719121a0af49c6698347aa39669",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "ubuntu_os_admission": {
+    "argv": [
+      "/opt/pyvenv/bin/python",
+      "-m",
+      "cybersec.stage64_runtime",
+      "--require-admission"
+    ],
+    "exit_code": 3,
+    "expected_exit_code": 3,
+    "seconds": 0.874,
+    "timeout": false,
+    "classification": "PASS",
+    "stdout_sha256": "43c1665c438753283d889296f19379ab5a3c5719121a0af49c6698347aa39669",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

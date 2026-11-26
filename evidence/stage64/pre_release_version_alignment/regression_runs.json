@@ -1,0 +1,83 @@
+[
+  {
+    "name": "strict_full_1",
+    "argv": [
+      "/opt/pyvenv/bin/python",
+      "-W",
+      "error::ResourceWarning",
+      "-W",
+      "error::DeprecationWarning",
+      "-m",
+      "pytest",
+      "-q",
+      "-ra",
+      "--tb=short",
+      "tests"
+    ],
+    "exit_code": 0,
+    "seconds": 54.447,
+    "timed_out": false,
+    "classification": "PASS",
+    "stdout_sha256": "5dd923a3be01c8f2df95127dfb57004d4e8e80cd18264740acae6f65c82f6836",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "last_lines": [
+      "SKIPPED [1] tests/integration/test_stage64_ubuntu.py:74: Ubuntu Server 26.10 opt-in only; no external scanners",
+      "SKIPPED [1] tests/integration/test_stage64_ubuntu.py:116: Ubuntu Server 26.10 opt-in only; no external scanners",
+      "311 passed, 8 skipped in 52.14s"
+    ]
+  },
+  {
+    "name": "strict_full_2",
+    "argv": [
+      "/opt/pyvenv/bin/python",
+      "-W",
+      "error::ResourceWarning",
+      "-W",
+      "error::DeprecationWarning",
+      "-m",
+      "pytest",
+      "-q",
+      "-ra",
+      "--tb=short",
+      "tests"
+    ],
+    "exit_code": 0,
+    "seconds": 54.395,
+    "timed_out": false,
+    "classification": "PASS",
+    "stdout_sha256": "4232380fb9531a209352e556528423dbda0ba4a6bd373fc334a814cda6526af0",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "last_lines": [
+      "SKIPPED [1] tests/integration/test_stage64_ubuntu.py:74: Ubuntu Server 26.10 opt-in only; no external scanners",
+      "SKIPPED [1] tests/integration/test_stage64_ubuntu.py:116: Ubuntu Server 26.10 opt-in only; no external scanners",
+      "311 passed, 8 skipped in 51.96s"
+    ]
+  },
+  {
+    "name": "strict_full_3",
+    "argv": [
+      "/opt/pyvenv/bin/python",
+      "-W",
+      "error::ResourceWarning",
+      "-W",
+      "error::DeprecationWarning",
+      "-m",
+      "pytest",
+      "-q",
+      "-ra",
+      "--tb=short",
+      "tests"
+    ],
+    "exit_code": 0,
+    "seconds": 52.203,
+    "timed_out": false,
+    "classification": "PASS",
+    "stdout_sha256": "0fa479335f4cadcb3b04bebe919510278d129886f1aa8fccdd4fc73d965f540f",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "last_lines": [
+      "SKIPPED [1] tests/integration/test_stage64_ubuntu.py:74: Ubuntu Server 26.10 opt-in only; no external scanners",
+      "SKIPPED [1] tests/integration/test_stage64_ubuntu.py:116: Ubuntu Server 26.10 opt-in only; no external scanners",
+      "311 passed, 8 skipped in 49.92s"
+    ]
+  }
+]

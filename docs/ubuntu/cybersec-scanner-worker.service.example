@@ -1,0 +1,27 @@
+# REFERENCE ONLY / UNVALIDATED: customize paths, identity, permissions on Ubuntu Server.
+# A service unit by itself is not cgroup v2 delegation or MAC/LSM enforcement proof.
+[Unit]
+Description=Cyber Security 2.0 scanner worker (experimental / NO-GO)
+After=network.target
+
+[Service]
+Type=simple
+User=cybersec-scanner
+Group=cybersec-scanner
+WorkingDirectory=/opt/cybersec
+Environment=PYTHONPATH=/opt/cybersec/src
+Environment=CYBERSEC_PROCESS_SUPERVISION=1
+Environment=CYBERSEC_HOME=/var/lib/cybersec
+ExecStart=/opt/cybersec/.venv/bin/python -m cybersec scanner-worker --worker-id=ubuntu-worker-1 --lease-seconds=60 --idle-seconds=1
+KillMode=control-group
+TimeoutStopSec=15
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/lib/cybersec
+
+[Install]
+WantedBy=multi-user.target

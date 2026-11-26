@@ -1,0 +1,47 @@
+# STAGE 64 NO-GO CANDIDATE: review only, do not install/enable in production.
+# ExecStartPre is intentionally fail-closed (exit 3), because no independent
+# MAC, cgroup containment, admission authority or recovery witness is wired.
+# This is not evidence of OS-enforced scanner confinement.
+[Unit]
+Description=Cyber Security 2.0 scanner worker — Stage 64 NO-GO candidate
+After=network-online.target
+Wants=network-online.target
+ConditionPathExists=/etc/cybersec/production-approved-by-independent-operator
+
+[Service]
+Type=exec
+User=cybersec-worker
+Group=cybersec-worker
+WorkingDirectory=/opt/cybersec
+Environment=PYTHONPATH=/opt/cybersec/src
+Environment=CYBERSEC_EXECUTION_MODE=production
+Environment=CYBERSEC_PROCESS_SUPERVISION=1
+ExecStartPre=/opt/cybersec/.venv/bin/python -m cybersec.stage64_runtime --require-admission
+ExecStart=/opt/cybersec/.venv/bin/python -m cybersec scanner-worker --worker-id=ubuntu-stage64-worker --lease-seconds=60 --idle-seconds=1
+# The independent PID 1 systemd, not the worker PID, owns the service cgroup.
+KillMode=control-group
+SendSIGKILL=yes
+TimeoutStopSec=15s
+Delegate=no
+Restart=no
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+AmbientCapabilities=
+RestrictSUIDSGID=yes
+RestrictNamespaces=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+LockPersonality=yes
+ProtectClock=yes
+ProtectHostname=yes
+RemoveIPC=yes
+AppArmorProfile=cybersec-worker
+ReadWritePaths=/var/lib/cybersec
+
+[Install]
+WantedBy=multi-user.target
