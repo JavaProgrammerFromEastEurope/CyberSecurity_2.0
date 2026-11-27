@@ -1,0 +1,45 @@
+name: Stage70 V75 R16 read-only phase contract
+on:
+  pull_request:
+    paths:
+      - 'diagnostics/stage70/zap-focused-v75-r15-r16/**'
+      - '.github/workflows/stage70-v75-r16-phase.yml'
+  push:
+    branches:
+      - 'feature/stage70-v75-r15-r16-attribution-20261127'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  public-contract:
+    name: Python ${{ matrix.python-version }} — read-only
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Compile classifier and tests
+        run: python -m compileall -q diagnostics/stage70/zap-focused-v75-r15-r16
+      - name: Run strict public read-only tests
+        run: python -W error::ResourceWarning -W error::DeprecationWarning -m unittest discover -s diagnostics/stage70/zap-focused-v75-r15-r16/tests -v
+      - name: Confirm NO-GO invariant and matrix
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, pathlib
+          p=pathlib.Path('diagnostics/stage70/zap-focused-v75-r15-r16/PUBLIC_EVIDENCE_MANIFEST.json')
+          d=json.loads(p.read_text())
+          assert d['stage70']=='BLOCKED/NO-GO'
+          assert d['production']=='BLOCKED/NO-GO'
+          assert d['day04']=='NOT_RUN'
+          assert d['stage71']=='NOT_OPENED'
+          assert d['matrix']['classified']+d['matrix']['unknown']+d['matrix']['missing']==24
+          assert d['causality']=='NOT_PROVEN'
+          assert d['r16_full_strict_3x']=='NOT_YET_COMPLETED'
+          assert d['new_r16_ubuntu_e2e']=='NOT_RUN'
+          PY

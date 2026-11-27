@@ -1,0 +1,56 @@
+{
+  "schema": "stage70-v75-r15-r16-source-sync-v1",
+  "published_on": "2026-11-27",
+  "base_branch": "feature/stage70-v75-pid-recovery-r5-20261126",
+  "stage70": "BLOCKED/NO-GO",
+  "day04": "NOT_RUN",
+  "stage71": "NOT_OPENED",
+  "production": "BLOCKED/NO-GO",
+  "new_r16_ubuntu_e2e": "NOT_RUN",
+  "r16_full_strict_3x": "NOT_YET_COMPLETED",
+  "source_r15_zip_sha256": "15de8a7066674f6d667494de5afef670cb3cd99fe7839e4ef8cb34cbb4506c53",
+  "r15_qa_zip_sha256": "25503b37df091f1fc14815d8be8c0b411039a0c2f95d2a9d9fc7b2f92cb56f72",
+  "evidence_zip_sha256": "87c2bfd977ff0c273cc3f804c1324ac9a45dd181ea1e41af9cb330da2031099a",
+  "matrix": {
+    "required": 24,
+    "present": 16,
+    "classified": 7,
+    "unknown": 9,
+    "missing": 8,
+    "admission": "BLOCKED_INCOMPLETE"
+  },
+  "trials": [
+    {
+      "id": "R1_A",
+      "budget": 256,
+      "lab": "FAIL",
+      "pid_denials": 75,
+      "ajax_phase": "NOT_RUN"
+    },
+    {
+      "id": "R1_B",
+      "budget": 384,
+      "lab": "LAB_PASS",
+      "urls": 3,
+      "second_passive": true,
+      "pid_denials": 0
+    },
+    {
+      "id": "R2_B",
+      "budget": 384,
+      "lab": "LAB_PASS",
+      "urls": 3,
+      "second_passive": true,
+      "pid_denials": 0
+    },
+    {
+      "id": "R2_A",
+      "budget": 256,
+      "lab": "FAIL",
+      "urls": 0,
+      "pid_denials": 4
+    }
+  ],
+  "causality": "NOT_PROVEN",
+  "notes": "Public, sanitized source cross-check; raw private VM evidence NOT published"
+}
